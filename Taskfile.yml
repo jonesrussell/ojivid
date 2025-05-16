@@ -1,43 +1,85 @@
 version: '3'
+output: 'prefixed'
+
+vars:
+  VERSION:
+    sh: git describe --tags --always --dirty
+  BUILD_TIME:
+    sh: date -u '+%Y-%m-%d_%H:%M:%S'
+  GIT_COMMIT:
+    sh: git rev-parse HEAD
+  GO_VERSION:
+    sh: go version | cut -d ' ' -f 3
+  LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
 
 tasks:
   default:
     cmds:
-      - task --list
+      - task: install
+      - task: build
+      - task: run
 
   install:
     desc: Install project dependencies
     cmds:
-      - npm install
-
-  dev:
-    desc: Start development server
-    cmds:
-      - npm run dev
+      - go mod tidy
+      - go install github.com/gorilla/mux@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - export PATH=$PATH:$(go env GOPATH)/bin
 
   build:
-    desc: Build the project
+    desc: Build the application
+    deps: [lint]
     cmds:
-      - npm run build
+      - go build -ldflags "{{.LDFLAGS}}" -o bin/server main.go
 
-  test:
-    desc: Run tests
+  run:
+    desc: Run the application
     cmds:
-      - npm test
+      - ./bin/server
 
-  lint:
-    desc: Run linter
+  dev:
+    desc: Run development environment
     cmds:
-      - npm run lint
+      - go run main.go
 
   clean:
     desc: Clean build artifacts
     cmds:
-      - rm -rf dist
-      - rm -rf node_modules
-      - rm -rf .next
+      - rm -rf bin/ uploads/
 
-  format:
-    desc: Format code
+  lint:
+    desc: Run all linters
+    deps: [lint:backend, lint:frontend]
+
+  lint:backend:
+    desc: Run linters for Go code
     cmds:
-      - npm run format 
+      - go fmt ./...
+      - go vet ./...
+      - golangci-lint run ./...
+
+  lint:frontend:
+    desc: Run linters for frontend code
+    cmds:
+      - echo "Frontend linting not configured yet"
+
+  lint:fix:
+    desc: Fix all linting issues
+    deps: [lint:fix:backend, lint:fix:frontend]
+
+  lint:fix:backend:
+    desc: Fix linting issues in Go code
+    cmds:
+      - go fmt ./...
+
+  lint:fix:frontend:
+    desc: Fix linting issues in frontend code
+    cmds:
+      - echo "Frontend lint fixing not configured yet"
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+      - go tool cover -html=coverage.out -o coverage.html 
