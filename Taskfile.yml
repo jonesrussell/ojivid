@@ -11,6 +11,8 @@ vars:
   GO_VERSION:
     sh: go version | cut -d ' ' -f 3
   LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
+  WEBVIEW_FLAGS: -ldflags "-H windowsgui" # For Windows
+  # WEBVIEW_FLAGS: -ldflags "-s -w" # For Linux/Mac
 
 tasks:
   default:
@@ -25,13 +27,14 @@ tasks:
       - go mod tidy
       - go install github.com/gorilla/mux@latest
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install github.com/webview/webview@latest
       - export PATH=$PATH:$(go env GOPATH)/bin
 
   build:
     desc: Build the application
     deps: [lint]
     cmds:
-      - go build -ldflags "{{.LDFLAGS}}" -o bin/server main.go
+      - go build {{.WEBVIEW_FLAGS}} -o bin/server main.go
 
   run:
     desc: Run the application
