@@ -12,15 +12,52 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	webview_go "github.com/webview/webview_go"
 )
 
 const (
 	UPLOAD_DIR = "uploads"
+	PORT       = "8080"
 )
 
 func init() {
 	// Create uploads directory if it doesn't exist
 	os.MkdirAll(UPLOAD_DIR, os.ModePerm)
+}
+
+func startServer() {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/api/upload", uploadVideo).Methods("POST")
+	r.HandleFunc("/api/videos", getVideos).Methods("GET")
+
+	// Serve static files
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
+
+	http.Handle("/", r)
+
+	fmt.Printf("Server starting on :%s...\n", PORT)
+	go func() {
+		log.Fatal(http.ListenAndServe(":"+PORT, nil))
+	}()
+}
+
+func main() {
+	// Start the HTTP server in a goroutine
+	startServer()
+
+	// Create and configure webview
+	w := webview_go.New(true)
+	defer w.Destroy()
+
+	w.SetTitle("Video Upload Kiosk")
+	w.SetSize(1024, 768, 0) // 0 is the default hint value
+
+	// Load the local server URL
+	w.Navigate(fmt.Sprintf("http://localhost:%s", PORT))
+
+	// Run the webview
+	w.Run()
 }
 
 func uploadVideo(w http.ResponseWriter, r *http.Request) {
@@ -76,19 +113,4 @@ func getVideos(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(videos)
-}
-
-func main() {
-	r := mux.NewRouter()
-
-	r.HandleFunc("/api/upload", uploadVideo).Methods("POST")
-	r.HandleFunc("/api/videos", getVideos).Methods("GET")
-
-	// Serve static files
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
-
-	http.Handle("/", r)
-
-	fmt.Println("Server starting on :8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }
