@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"kiosk-video-recorder/config"
 	"kiosk-video-recorder/handlers"
@@ -30,9 +29,9 @@ func startServer() {
 	srv := &http.Server{
 		Addr:         ":" + config.Port,
 		Handler:      r,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  config.ReadTimeout,
+		WriteTimeout: config.WriteTimeout,
+		IdleTimeout:  config.IdleTimeout,
 	}
 
 	go func() {

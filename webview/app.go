@@ -39,7 +39,12 @@ func (a *App) Start() {
 
 // initJavaScript initializes the JavaScript environment
 func (a *App) initJavaScript() {
-	a.view.Init(`
+	a.view.Init(a.getEnvironmentCheckJS() + a.getMediaAccessJS())
+}
+
+// getEnvironmentCheckJS returns the JavaScript code for environment checking
+func (a *App) getEnvironmentCheckJS() string {
+	return `
 		// Diagnostic function to check environment
 		async function checkEnvironment() {
 			console.log('Checking environment...');
@@ -61,7 +66,12 @@ func (a *App) initJavaScript() {
 				console.log('Microphone permission:', permissions[1].state);
 			}
 		}
+	`
+}
 
+// getMediaAccessJS returns the JavaScript code for media access
+func (a *App) getMediaAccessJS() string {
+	return `
 		// Wait for DOM to be ready
 		document.addEventListener('DOMContentLoaded', async () => {
 			// Run diagnostics first
@@ -147,5 +157,5 @@ func (a *App) initJavaScript() {
 				document.body.appendChild(errorDiv);
 			}
 		});
-	`)
+	`
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 )
 
 const (
@@ -11,6 +12,11 @@ const (
 	WindowWidth   = 1024
 	WindowHeight  = 768
 	MaxUploadSize = 32 << 20 // 32MB
+
+	// Server timeouts
+	ReadTimeout  = 15 * time.Second
+	WriteTimeout = 15 * time.Second
+	IdleTimeout  = 60 * time.Second
 )
 
 // SetupEnvironment configures the application environment
