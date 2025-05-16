@@ -1,11 +1,12 @@
-ARG VARIANT=1.24-bookworm
+ARG VARIANT=1.24-bullseye
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
 # Install GTK, WebKit, and X11 dependencies for WSL2
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     libgtk-3-dev \
-    libwebkit2gtk-4.1-dev \
+    libwebkit2gtk-4.0-dev \
+    build-essential \
     pkg-config \
     x11-apps \
     x11-utils \
