@@ -11,8 +11,16 @@ vars:
   GO_VERSION:
     sh: go version | cut -d ' ' -f 3
   LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
-  WEBVIEW_FLAGS: -ldflags "-H windowsgui" # For Windows
-  # WEBVIEW_FLAGS: -ldflags "-s -w" # For Linux/Mac
+  # OS-specific build flags
+  BUILD_FLAGS:
+    sh: |
+      if [ "$(uname)" = "Linux" ]; then
+        echo "-ldflags '{{.LDFLAGS}}'"
+      elif [ "$(uname)" = "Windows_NT" ]; then
+        echo "-ldflags '-H windowsgui {{.LDFLAGS}}'"
+      else
+        echo "-ldflags '{{.LDFLAGS}}'"
+      fi
 
 tasks:
   default:
@@ -22,19 +30,20 @@ tasks:
       - task: run
 
   install:
-    desc: Install project dependencies
+    desc: Install all dependencies
+    deps: [install:go]
+
+  install:go:
+    desc: Install Go dependencies
     cmds:
+      - go mod download
       - go mod tidy
-      - go install github.com/gorilla/mux@latest
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-      - go install github.com/webview/webview@latest
-      - export PATH=$PATH:$(go env GOPATH)/bin
 
   build:
     desc: Build the application
     deps: [lint]
     cmds:
-      - go build {{.WEBVIEW_FLAGS}} -o bin/server main.go
+      - go build {{.BUILD_FLAGS}} -o bin/server main.go
 
   run:
     desc: Run the application
@@ -43,6 +52,7 @@ tasks:
 
   dev:
     desc: Run development environment
+    deps: [install]
     cmds:
       - go run main.go
 

@@ -1,14 +1,25 @@
 ARG VARIANT=1.24-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
-# Install GTK and WebKit dependencies
+# Install GTK, WebKit, and X11 dependencies for WSL2
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     libgtk-3-dev \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     pkg-config \
+    x11-apps \
+    x11-utils \
+    x11-xserver-utils \
+    libx11-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Set display for WSL2
+ENV DISPLAY=:0
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
