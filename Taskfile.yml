@@ -31,7 +31,7 @@ tasks:
 
   install:
     desc: Install all dependencies
-    deps: [install:go]
+    deps: [install:go, install:frontend]
 
   install:go:
     desc: Install Go dependencies
@@ -39,9 +39,15 @@ tasks:
       - go mod download
       - go mod tidy
 
+  install:frontend:
+    desc: Install frontend dependencies
+    cmds:
+      - npm install
+      - npm install -D vite @vitejs/plugin-react
+
   build:
     desc: Build the application
-    deps: [lint]
+    deps: [lint, build:frontend]
     cmds:
       - |
         export CGO_ENABLED=1
@@ -55,6 +61,11 @@ tasks:
           go build -tags webview_cocoa {{.BUILD_FLAGS}} -o bin/server main.go
         fi
 
+  build:frontend:
+    desc: Build frontend assets
+    cmds:
+      - npm run build
+
   run:
     desc: Run the application
     cmds:
@@ -62,14 +73,22 @@ tasks:
 
   dev:
     desc: Run development environment
-    deps: [install]
+    deps: [dev:backend, dev:frontend]
+
+  dev:backend:
+    desc: Run backend in development mode
     cmds:
       - go run main.go
+
+  dev:frontend:
+    desc: Run frontend development server
+    cmds:
+      - npm run dev
 
   clean:
     desc: Clean build artifacts
     cmds:
-      - rm -rf bin/ uploads/
+      - rm -rf bin/ uploads/ dist/ node_modules/
 
   lint:
     desc: Run all linters
@@ -85,7 +104,7 @@ tasks:
   lint:frontend:
     desc: Run linters for frontend code
     cmds:
-      - echo "Frontend linting not configured yet"
+      - npm run lint
 
   lint:fix:
     desc: Fix all linting issues
@@ -99,7 +118,7 @@ tasks:
   lint:fix:frontend:
     desc: Fix linting issues in frontend code
     cmds:
-      - echo "Frontend lint fixing not configured yet"
+      - npm run lint:fix
 
   test:
     desc: Run all tests
