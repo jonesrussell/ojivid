@@ -17,9 +17,9 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'src/index.html'),
-        edit: resolve(__dirname, 'src/edit.html'),
-        view: resolve(__dirname, 'src/view.html')
+        main: resolve(__dirname, 'src/pages/index.html'),
+        edit: resolve(__dirname, 'src/pages/edit.html'),
+        view: resolve(__dirname, 'src/pages/view.html')
       }
     }
   },
