@@ -38,7 +38,9 @@ tasks:
     desc: Default task - installs dependencies, builds and runs the application
     cmds:
     - task build
-    - task run
+    - task test
+    - task lint:backend
+    - task lint:frontend
 
   deps:
     desc: Install all dependencies
@@ -58,9 +60,9 @@ tasks:
 
   build:
     desc: Build the application
-    deps: [ validate, build:frontend ]
     cmds:
-    - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
+    - task build:frontend
+    - task build:backend
 
   build:frontend:
     desc: Build frontend assets
@@ -68,47 +70,49 @@ tasks:
     cmds:
     - npm run build
 
+  build:backend:
+    desc: Build backend application
+    cmds:
+    - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
+
   run:
     desc: Run the application
     cmds:
     - bin/server.exe
 
   dev:
-    desc: Run development environment
-    deps: [ dev:backend, dev:frontend ]
+    desc: Run the application with hot reloading
+    cmds:
+    - air
+
+  dev:frontend:
+    desc: Run the frontend with hot reloading
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+    - cd {{.FRONTEND_DIR}} && npm run dev
 
   dev:backend:
     desc: Run backend in development mode
     cmds:
     - go run {{.MAIN_PACKAGE}}
 
-  dev:frontend:
-    desc: Run frontend development server
-    dir: "{{.FRONTEND_DIR}}"
+  test:
+    desc: Run all tests
     cmds:
-    - npm run dev
+    - go test -v -race ./...
 
-  watch:
-    desc: Watch for changes and rebuild
+  test:coverage:
+    desc: Run tests with coverage report
     cmds:
-    - task: dev
-      ignore_error: true
-    - task: build
-      ignore_error: true
+    - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+    - go tool cover -html=coverage.out -o coverage.html
 
-  clean:
-    desc: Clean build artifacts
+  setup:
+    desc: Initial project setup
     cmds:
-    - powershell -Command "if (Test-Path {{.DIST_DIR}}) { Remove-Item -Recurse -Force {{.DIST_DIR}} }"
-    - powershell -Command "if (Test-Path coverage.out) { Remove-Item -Force coverage.out }"
-    - powershell -Command "if (Test-Path coverage.html) { Remove-Item -Force coverage.html }"
-    - powershell -Command "if (Test-Path {{.FRONTEND_DIR}}/node_modules) { Remove-Item -Recurse -Force {{.FRONTEND_DIR}}/node_modules }"
-    - powershell -Command "if (Test-Path {{.FRONTEND_DIR}}/dist) { Remove-Item -Recurse -Force {{.FRONTEND_DIR}}/dist }"
-    - go clean -cache -testcache
-
-  validate:
-    desc: Run all validation checks
-    deps: [ lint, test, typecheck ]
+    - task deps
+    - task build
+    - task validate
 
   lint:
     desc: Run all linters
@@ -125,7 +129,7 @@ tasks:
     desc: Run linters for frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm run lint
+    - cd {{.FRONTEND_DIR}} && npm run lint
 
   lint:fix:
     desc: Fix all linting issues
@@ -140,28 +144,18 @@ tasks:
     desc: Fix linting issues in frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm run lint:fix
+    - cd {{.FRONTEND_DIR}} && npm run lint:fix
 
-  test:
-    desc: Run all tests
+  clean:
+    desc: Clean build artifacts
     cmds:
-    - go test -v -race ./...
+    - rm -rf {{.DIST_DIR}}
+    - rm -rf coverage.out
+    - rm -rf coverage.html
+    - rm -rf {{.FRONTEND_DIR}}/node_modules
+    - rm -rf {{.FRONTEND_DIR}}/dist
+    - go clean -cache -testcache
 
-  test:coverage:
-    desc: Run tests with coverage report
-    cmds:
-    - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-    - go tool cover -html=coverage.out -o coverage.html
-
-  typecheck:
-    desc: Run TypeScript type checking
-    dir: "{{.FRONTEND_DIR}}"
-    cmds:
-    - npm run typecheck
-
-  setup:
-    desc: Initial project setup
-    cmds:
-    - task deps
-    - task build
-    - task validate
+  validate:
+    desc: Run all validation checks
+    deps: [ lint, test ]

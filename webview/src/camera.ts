@@ -1,7 +1,14 @@
 /// <reference types="vite/client" />
 /// <reference lib="dom" />
+/* global MediaTrackConstraints */
 
 type MediaDeviceInfoExt = MediaDeviceInfo & { label: string };
+
+interface CameraSettings {
+    audioEnabled: boolean;
+    videoQuality: 'high' | 'medium' | 'low';
+    maxDuration: number;
+}
 
 export class CameraManager {
     private stream: MediaStream | null = null;
@@ -9,6 +16,11 @@ export class CameraManager {
     private mediaRecorder: MediaRecorder | null = null;
     private recordedChunks: Blob[] = [];
     private isRecording: boolean = false;
+    private settings: CameraSettings = {
+        audioEnabled: true,
+        videoQuality: 'medium',
+        maxDuration: 30
+    };
 
     async init(): Promise<void> {
         try {
@@ -30,20 +42,18 @@ export class CameraManager {
             .map(device => ({ ...device, label: device.label || `Camera ${device.deviceId}` }));
     }
 
-    private async startCamera(deviceId?: string): Promise<void> {
+    public async startCamera(deviceId?: string): Promise<void> {
         try {
             this.cleanupExistingVideo();
 
-            // Try with preferred constraints first
             const constraints: MediaStreamConstraints = {
-                video: deviceId ? { deviceId: { exact: deviceId } } : true,
-                audio: true
+                video: this.getVideoConstraints(deviceId),
+                audio: this.settings.audioEnabled
             };
 
             try {
                 this.stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (error) {
-                // If that fails, try with more basic constraints
                 console.log('Falling back to basic constraints');
                 this.stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -51,14 +61,31 @@ export class CameraManager {
                         height: { ideal: 720 },
                         facingMode: 'user'
                     },
-                    audio: true
+                    audio: this.settings.audioEnabled
                 });
             }
 
             this.setupVideo();
             this.setupRecordingControls();
+            this.updateDeviceStatus('Connected');
         } catch (error) {
             this.handleError(error);
+            this.updateDeviceStatus('Error');
+        }
+    }
+
+    private getVideoConstraints(deviceId?: string): MediaTrackConstraints {
+        const baseConstraints = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' };
+        
+        switch (this.settings.videoQuality) {
+            case 'high':
+                return { ...baseConstraints, width: { ideal: 1920 }, height: { ideal: 1080 } };
+            case 'medium':
+                return { ...baseConstraints, width: { ideal: 1280 }, height: { ideal: 720 } };
+            case 'low':
+                return { ...baseConstraints, width: { ideal: 854 }, height: { ideal: 480 } };
+            default:
+                return baseConstraints;
         }
     }
 
@@ -199,8 +226,13 @@ export class CameraManager {
     private async switchCamera(): Promise<void> {
         if (!this.stream) return;
 
-        const currentDeviceId = this.stream.getVideoTracks()[0].getSettings().deviceId;
-        const nextDevice = this.videoDevices.find(d => d.deviceId !== currentDeviceId);
+        const videoTrack = this.stream.getVideoTracks()[0];
+        if (!videoTrack) return;
+
+        const settings = videoTrack.getSettings();
+        if (!settings.deviceId) return;
+
+        const nextDevice = this.videoDevices.find(d => d.deviceId !== settings.deviceId);
         if (nextDevice) await this.startCamera(nextDevice.deviceId);
     }
 
@@ -210,7 +242,10 @@ export class CameraManager {
         }
 
         document.querySelectorAll("video").forEach(video => {
-            (video.srcObject as MediaStream)?.getTracks().forEach(track => track.stop());
+            const stream = video.srcObject as MediaStream;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
             video.remove();
         });
 
@@ -220,7 +255,7 @@ export class CameraManager {
         this.isRecording = false;
     }
 
-    private handleError(error: Error | unknown): void {
+    private handleError(error: unknown): void {
         console.error("Camera Error:", error);
         this.showMessage(`Error: ${error instanceof Error ? error.message : String(error)}`, true);
     }
@@ -234,6 +269,39 @@ export class CameraManager {
         setTimeout(() => {
             messageDiv.remove();
         }, 5000);
+    }
+
+    public setAudioEnabled(enabled: boolean): void {
+        this.settings.audioEnabled = enabled;
+        if (this.stream) {
+            this.stream.getAudioTracks().forEach(track => {
+                track.enabled = enabled;
+            });
+        }
+    }
+
+    public setVideoQuality(quality: 'high' | 'medium' | 'low'): void {
+        this.settings.videoQuality = quality;
+        if (this.stream) {
+            const videoTrack = this.stream.getVideoTracks()[0];
+            if (videoTrack) {
+                const settings = videoTrack.getSettings();
+                if (settings.deviceId) {
+                    this.startCamera(settings.deviceId);
+                }
+            }
+        }
+    }
+
+    public setMaxDuration(minutes: number): void {
+        this.settings.maxDuration = minutes;
+    }
+
+    private updateDeviceStatus(status: string): void {
+        const statusElement = document.querySelector('.device-status .status-text');
+        if (statusElement) {
+            statusElement.textContent = status;
+        }
     }
 }
 
