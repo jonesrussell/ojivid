@@ -9,8 +9,8 @@ import (
 
 const (
 	// Default window dimensions
-	DefaultWindowWidth  = 800
-	DefaultWindowHeight = 600
+	DefaultWindowWidth  = 1280
+	DefaultWindowHeight = 720
 )
 
 // App represents the webview application
@@ -30,7 +30,7 @@ func (a *App) Start() {
 	defer a.view.Destroy()
 
 	// Set window properties
-	a.view.SetTitle("Kiosk Video Recorder")
+	a.view.SetTitle("Ojiosk")
 	a.view.SetSize(DefaultWindowWidth, DefaultWindowHeight, webview.HintNone)
 
 	// Load the local server URL
