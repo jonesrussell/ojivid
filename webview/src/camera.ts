@@ -11,10 +11,16 @@ export class CameraManager {
     private isRecording: boolean = false;
 
     async init(): Promise<void> {
-        this.videoDevices = await this.getVideoDevices();
-        if (this.videoDevices.length === 0) throw new Error("No video devices found");
+        try {
+            // Request camera permission first
+            await navigator.mediaDevices.getUserMedia({ video: true });
+            this.videoDevices = await this.getVideoDevices();
+            if (this.videoDevices.length === 0) throw new Error("No video devices found");
 
-        this.createDeviceSelector();
+            this.createDeviceSelector();
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 
     private async getVideoDevices(): Promise<MediaDeviceInfoExt[]> {
@@ -27,10 +33,27 @@ export class CameraManager {
     private async startCamera(deviceId?: string): Promise<void> {
         try {
             this.cleanupExistingVideo();
-            this.stream = await navigator.mediaDevices.getUserMedia({
+
+            // Try with preferred constraints first
+            const constraints: MediaStreamConstraints = {
                 video: deviceId ? { deviceId: { exact: deviceId } } : true,
                 audio: true
-            });
+            };
+
+            try {
+                this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (error) {
+                // If that fails, try with more basic constraints
+                console.log('Falling back to basic constraints');
+                this.stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: true
+                });
+            }
 
             this.setupVideo();
             this.setupRecordingControls();
