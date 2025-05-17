@@ -17,6 +17,7 @@ vars:
   FRONTEND_DIR: webview
   UPLOAD_DIR: uploads
   MAIN_PACKAGE: main.go
+  DIST_DIR: static/dist
 
   # Build flags
   LDFLAGS: >-
@@ -57,7 +58,7 @@ tasks:
 
   build:
     desc: Build the application
-    deps: [ lint, build:frontend ]
+    deps: [ validate, build:frontend ]
     cmds:
     - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server {{.MAIN_PACKAGE}}
 
@@ -87,10 +88,29 @@ tasks:
     cmds:
     - npm run dev
 
-  clean:
-    desc: Clean build artifacts
+  watch:
+    desc: Watch for changes and rebuild
     cmds:
-    - rm -rf {{.BIN_DIR}}/ {{.UPLOAD_DIR}}/ dist/ node_modules/
+    - task: dev
+      ignore_error: true
+    - task: build
+      ignore_error: true
+
+  clean:
+    desc: Clean build artifacts and temporary files
+    cmds:
+    - powershell -Command "if (Test-Path {{.BIN_DIR}}) { Remove-Item -Recurse -Force {{.BIN_DIR}} }"
+    - powershell -Command "if (Test-Path {{.UPLOAD_DIR}}) { Remove-Item -Recurse -Force {{.UPLOAD_DIR}} }"
+    - powershell -Command "if (Test-Path {{.DIST_DIR}}) { Remove-Item -Recurse -Force {{.DIST_DIR}} }"
+    - powershell -Command "if (Test-Path coverage.out) { Remove-Item -Force coverage.out }"
+    - powershell -Command "if (Test-Path coverage.html) { Remove-Item -Force coverage.html }"
+    - powershell -Command "if (Test-Path {{.FRONTEND_DIR}}/node_modules) { Remove-Item -Recurse -Force {{.FRONTEND_DIR}}/node_modules }"
+    - powershell -Command "if (Test-Path {{.FRONTEND_DIR}}/dist) { Remove-Item -Recurse -Force {{.FRONTEND_DIR}}/dist }"
+    - go clean -cache -testcache
+
+  validate:
+    desc: Run all validation checks
+    deps: [ lint, test, typecheck ]
 
   lint:
     desc: Run all linters
@@ -127,5 +147,23 @@ tasks:
   test:
     desc: Run all tests
     cmds:
+    - go test -v -race ./...
+
+  test:coverage:
+    desc: Run tests with coverage report
+    cmds:
     - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
     - go tool cover -html=coverage.out -o coverage.html
+
+  typecheck:
+    desc: Run TypeScript type checking
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+    - npm run typecheck
+
+  setup:
+    desc: Initial project setup
+    cmds:
+    - task deps
+    - task build
+    - task validate
