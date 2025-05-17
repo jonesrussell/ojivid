@@ -6,8 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint \"**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint \"**/*.{ts,tsx}\" --fix",
+    "lint": "npx eslint \"**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "npx eslint \"**/*.{ts,tsx}\" --fix",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
