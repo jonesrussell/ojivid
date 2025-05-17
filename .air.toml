@@ -11,7 +11,7 @@ full_bin = "bin/server.exe"
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html", "css", "js", "ts"]
 # Ignore these filename extensions or directories.
-exclude_dir = ["assets", "tmp", "vendor", "node_modules", "webview/dist"]
+exclude_dir = ["assets", "tmp", "vendor", "node_modules", "webview/dist", "bin"]
 # Watch these directories if you specified.
 include_dir = []
 # Exclude files.
