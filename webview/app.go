@@ -7,6 +7,12 @@ import (
 	webview "github.com/webview/webview_go"
 )
 
+const (
+	// Default window dimensions
+	DefaultWindowWidth  = 800
+	DefaultWindowHeight = 600
+)
+
 // App represents the webview application
 type App struct {
 	view webview.WebView
@@ -25,7 +31,7 @@ func (a *App) Start() {
 
 	// Set window properties
 	a.view.SetTitle("Kiosk Video Recorder")
-	a.view.SetSize(800, 600, webview.HintNone)
+	a.view.SetSize(DefaultWindowWidth, DefaultWindowHeight, webview.HintNone)
 
 	// Initialize JavaScript
 	a.initJavaScript()
