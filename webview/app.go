@@ -24,8 +24,8 @@ func (a *App) Start() {
 	defer a.view.Destroy()
 
 	// Set window properties
-	a.view.SetTitle("Video Upload Kiosk")
-	a.view.SetSize(config.WindowWidth, config.WindowHeight, 0)
+	a.view.SetTitle("Kiosk Video Recorder")
+	a.view.SetSize(800, 600, webview.HintNone)
 
 	// Initialize JavaScript
 	a.initJavaScript()
