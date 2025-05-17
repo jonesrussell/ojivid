@@ -45,24 +45,15 @@ function createDeviceSelector(videoDevices) {
     cleanupExistingVideo();
     
     const container = document.createElement('div');
-    container.className = 'camera-selector';
-    container.style.margin = '20px';
-    container.style.padding = '20px';
-    container.style.border = '1px solid #ccc';
-    container.style.borderRadius = '5px';
-
-    const title = document.createElement('h2');
+    container.className = 'camera-selector control-panel';
+    
+    const title = document.createElement('h3');
     title.textContent = 'Select Camera';
-    title.style.marginBottom = '15px';
     container.appendChild(title);
 
     const select = document.createElement('select');
-    select.style.width = '100%';
-    select.style.padding = '8px';
-    select.style.marginBottom = '15px';
-    select.style.borderRadius = '4px';
-    select.style.border = '1px solid #ccc';
-
+    select.id = 'camera-select';
+    
     videoDevices.forEach(device => {
         const option = document.createElement('option');
         option.value = device.deviceId;
@@ -72,12 +63,7 @@ function createDeviceSelector(videoDevices) {
 
     const button = document.createElement('button');
     button.textContent = 'Start Camera';
-    button.style.padding = '8px 16px';
-    button.style.backgroundColor = '#4CAF50';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.borderRadius = '4px';
-    button.style.cursor = 'pointer';
+    button.className = 'primary';
 
     button.onclick = async () => {
         const selectedDeviceId = select.value;
@@ -146,10 +132,6 @@ function setupVideo(stream, videoDevices) {
     video.srcObject = stream;
     video.autoplay = true;
     video.playsInline = true;
-    video.style.width = '640px';
-    video.style.height = '480px';
-    video.style.border = '1px solid #ccc';
-    video.style.borderRadius = '5px';
     
     // Create camera controls
     const controls = document.createElement('div');
@@ -159,6 +141,7 @@ function setupVideo(stream, videoDevices) {
     if (videoDevices.length > 1) {
         const switchButton = document.createElement('button');
         switchButton.textContent = 'Switch Camera';
+        switchButton.className = 'secondary';
         switchButton.onclick = async () => {
             try {
                 const currentDeviceId = stream.getVideoTracks()[0].getSettings().deviceId;
@@ -208,12 +191,6 @@ function setupVideo(stream, videoDevices) {
 function showError(error) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
-    errorDiv.style.color = 'red';
-    errorDiv.style.padding = '20px';
-    errorDiv.style.margin = '20px';
-    errorDiv.style.border = '1px solid red';
-    errorDiv.style.borderRadius = '5px';
-    errorDiv.style.backgroundColor = '#ffebee';
     errorDiv.textContent = 'Error accessing camera: ' + error.message;
     document.body.appendChild(errorDiv);
 }
