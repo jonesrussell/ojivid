@@ -1,4 +1,4 @@
-bin/server
+bin/
 node_modules/
 static/dist/
 dist/

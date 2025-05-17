@@ -39,11 +39,11 @@ tasks:
     platforms: [windows]
     cmds:
     - >-
-      go build -ldflags "-H windowsgui -s -w \
-      -X main.version={{.VERSION}} \
-      -X main.buildTime={{.BUILD_TIME}} \
-      -X main.gitCommit={{.GIT_COMMIT}} \
-      -X main.goVersion={{.GO_VERSION}}" \
+      go build -ldflags "-H windowsgui -s -w
+      -X main.version={{.VERSION}}
+      -X main.buildTime={{.BUILD_TIME}}
+      -X main.gitCommit={{.GIT_COMMIT}}
+      -X main.goVersion={{.GO_VERSION}}"
       -o bin\\server.exe main.go
 
   build:
