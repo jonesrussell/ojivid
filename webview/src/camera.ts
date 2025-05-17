@@ -8,27 +8,10 @@ class CameraManager {
     private videoDevices: MediaDeviceInfoExt[] = [];
 
     async init(): Promise<void> {
-        await this.checkEnvironment();
         this.videoDevices = await this.getVideoDevices();
         if (this.videoDevices.length === 0) throw new Error("No video devices found");
 
         this.createDeviceSelector();
-    }
-
-    private async checkEnvironment(): Promise<void> {
-        console.log("Checking environment...");
-        console.log("User Agent:", navigator.userAgent);
-        console.log("Platform:", navigator.platform);
-
-        if (navigator.permissions) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [camera, microphone] = await Promise.all([
-                navigator.permissions.query({ name: "camera" } as unknown as PermissionDescriptor),
-                navigator.permissions.query({ name: "microphone" } as unknown as PermissionDescriptor)
-            ]);
-            console.log("Camera permission:", camera.state);
-            console.log("Microphone permission:", microphone.state);
-        }
     }
 
     private async getVideoDevices(): Promise<MediaDeviceInfoExt[]> {

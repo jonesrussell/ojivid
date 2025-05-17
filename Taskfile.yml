@@ -60,7 +60,7 @@ tasks:
     desc: Build the application
     deps: [ validate, build:frontend ]
     cmds:
-    - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server {{.MAIN_PACKAGE}}
+    - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
 
   build:frontend:
     desc: Build frontend assets
@@ -71,7 +71,7 @@ tasks:
   run:
     desc: Run the application
     cmds:
-    - ./bin/server
+    - bin/server.exe
 
   dev:
     desc: Run development environment
@@ -97,10 +97,8 @@ tasks:
       ignore_error: true
 
   clean:
-    desc: Clean build artifacts and temporary files
+    desc: Clean build artifacts
     cmds:
-    - powershell -Command "if (Test-Path {{.BIN_DIR}}) { Remove-Item -Recurse -Force {{.BIN_DIR}} }"
-    - powershell -Command "if (Test-Path {{.UPLOAD_DIR}}) { Remove-Item -Recurse -Force {{.UPLOAD_DIR}} }"
     - powershell -Command "if (Test-Path {{.DIST_DIR}}) { Remove-Item -Recurse -Force {{.DIST_DIR}} }"
     - powershell -Command "if (Test-Path coverage.out) { Remove-Item -Force coverage.out }"
     - powershell -Command "if (Test-Path coverage.html) { Remove-Item -Force coverage.html }"
