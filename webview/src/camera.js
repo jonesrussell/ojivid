@@ -20,30 +20,90 @@ async function checkEnvironment() {
     }
 }
 
-// Initialize camera access
-async function initCamera() {
-    try {
-        // First check available devices
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        console.log('Available devices:', devices.map(d => ({
-            kind: d.kind,
-            label: d.label,
-            deviceId: d.deviceId
-        })));
-
-        // Find the integrated camera
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        console.log('Video devices:', videoDevices);
-
-        if (videoDevices.length === 0) {
-            throw new Error('No video devices found');
+// Clean up existing video elements and streams
+function cleanupExistingVideo() {
+    // Stop all existing video tracks
+    document.querySelectorAll('video').forEach(video => {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
         }
+        video.remove();
+    });
+    
+    // Remove any existing selectors
+    const existingSelector = document.querySelector('.camera-selector');
+    if (existingSelector) {
+        existingSelector.remove();
+    }
+    
+    // Remove any existing error messages
+    document.querySelectorAll('.error-message').forEach(error => error.remove());
+}
 
+// Create device selector UI
+function createDeviceSelector(videoDevices) {
+    cleanupExistingVideo();
+    
+    const container = document.createElement('div');
+    container.className = 'camera-selector';
+    container.style.margin = '20px';
+    container.style.padding = '20px';
+    container.style.border = '1px solid #ccc';
+    container.style.borderRadius = '5px';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Select Camera';
+    title.style.marginBottom = '15px';
+    container.appendChild(title);
+
+    const select = document.createElement('select');
+    select.style.width = '100%';
+    select.style.padding = '8px';
+    select.style.marginBottom = '15px';
+    select.style.borderRadius = '4px';
+    select.style.border = '1px solid #ccc';
+
+    videoDevices.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.textContent = device.label;
+        select.appendChild(option);
+    });
+
+    const button = document.createElement('button');
+    button.textContent = 'Start Camera';
+    button.style.padding = '8px 16px';
+    button.style.backgroundColor = '#4CAF50';
+    button.style.color = 'white';
+    button.style.border = 'none';
+    button.style.borderRadius = '4px';
+    button.style.cursor = 'pointer';
+
+    button.onclick = async () => {
+        const selectedDeviceId = select.value;
+        try {
+            const stream = await initCamera(selectedDeviceId);
+            const video = setupVideo(stream);
+            container.remove(); // Remove the selector after camera starts
+            document.body.appendChild(video);
+        } catch (error) {
+            showError(error);
+        }
+    };
+
+    container.appendChild(select);
+    container.appendChild(button);
+    return container;
+}
+
+// Initialize camera access
+async function initCamera(deviceId) {
+    try {
         // Try to get basic media access with minimal constraints
         const stream = await navigator.mediaDevices.getUserMedia({
             audio: false,
             video: {
-                deviceId: videoDevices[0].deviceId,
+                deviceId: deviceId ? { exact: deviceId } : undefined,
                 width: { ideal: 640 },
                 height: { ideal: 480 }
             }
@@ -76,6 +136,8 @@ async function initCamera() {
 
 // Set up video element
 function setupVideo(stream) {
+    cleanupExistingVideo();
+    
     const video = document.createElement('video');
     video.srcObject = stream;
     video.autoplay = true;
@@ -83,6 +145,8 @@ function setupVideo(stream) {
     video.style.width = '640px';
     video.style.height = '480px';
     video.style.border = '1px solid #ccc';
+    video.style.borderRadius = '5px';
+    video.style.margin = '20px';
     
     // Log video element properties
     video.onloadedmetadata = () => {
@@ -97,24 +161,61 @@ function setupVideo(stream) {
     // Add error handling for video element
     video.onerror = (error) => {
         console.error('Video element error:', error);
+        showError(error);
     };
 
     return video;
 }
 
+// Show error message
+function showError(error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.color = 'red';
+    errorDiv.style.padding = '20px';
+    errorDiv.style.margin = '20px';
+    errorDiv.style.border = '1px solid red';
+    errorDiv.style.borderRadius = '5px';
+    errorDiv.style.backgroundColor = '#ffebee';
+    errorDiv.textContent = 'Error accessing camera: ' + error.message;
+    document.body.appendChild(errorDiv);
+}
+
+// Track initialization state
+let isInitialized = false;
+
 // Initialize camera and video
 export async function initCameraAndVideo() {
+    // Prevent multiple initializations
+    if (isInitialized) {
+        console.log('Camera already initialized');
+        return;
+    }
+    isInitialized = true;
+
     await checkEnvironment();
     try {
-        const stream = await initCamera();
-        const video = setupVideo(stream);
-        document.body.appendChild(video);
+        // First check available devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log('Available devices:', devices.map(d => ({
+            kind: d.kind,
+            label: d.label,
+            deviceId: d.deviceId
+        })));
+
+        // Find the video devices
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log('Video devices:', videoDevices);
+
+        if (videoDevices.length === 0) {
+            throw new Error('No video devices found');
+        }
+
+        // Create and show device selector
+        const selector = createDeviceSelector(videoDevices);
+        document.body.appendChild(selector);
     } catch (error) {
-        // Add error message to page
-        const errorDiv = document.createElement('div');
-        errorDiv.style.color = 'red';
-        errorDiv.style.padding = '20px';
-        errorDiv.textContent = 'Error accessing camera: ' + error.message;
-        document.body.appendChild(errorDiv);
+        showError(error);
+        isInitialized = false; // Reset initialization state on error
     }
 } 
