@@ -3,7 +3,7 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root: 'src',
+  root: '.',
   base: '/',  // Use absolute paths for assets
   resolve: {
     alias: {
@@ -11,15 +11,13 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: resolve(__dirname, '../static/dist'),
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'src/pages/index.html'),
-        edit: resolve(__dirname, 'src/pages/edit.html'),
-        view: resolve(__dirname, 'src/pages/view.html')
+        main: resolve(__dirname, 'index.html')
       }
     }
   },

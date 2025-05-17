@@ -35,7 +35,7 @@ export class CameraManager {
 
             // Get available devices
             const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            const videoDevices = devices.filter(device => device.kind === 'videoinput') as MediaDeviceInfoExt[];
 
             // Create device selector
             const select = document.createElement('select');

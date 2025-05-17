@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 /// <reference lib="dom" />
 
-import { Template, createView } from './templates';
+import { createView } from './templates';
 import { CameraManager } from './camera';
 
 // Initialize the app
