@@ -35,7 +35,9 @@ includes:
 tasks:
   default:
     desc: Default task - installs dependencies, builds and runs the application
-    deps: [ build, run ]
+    cmds:
+    - task build
+    - task run
 
   deps:
     desc: Install all dependencies
