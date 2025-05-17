@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Webview Implementation
+
+The application uses [webview_go](mdc:https:/github.com/webview/webview_go) to create a desktop window that hosts the web application.
+
+## Key Components
+
+### Window Configuration
+- Default window size: 800x600 pixels
+- Window title: "Kiosk Video Recorder"
+- Uses webview's native window hints
+
+### JavaScript Integration
+The webview implementation includes several JavaScript utilities:
+
+1. Environment Checking
+   - Detects platform and user agent
+   - Checks for WSL environment
+   - Verifies camera and microphone permissions
+
+2. Media Access
+   - Enumerates available media devices
+   - Handles camera access with fallbacks
+   - Provides error handling and diagnostics
+
+### Implementation Details
+- Located in [webview/app.go](mdc:webview/app.go)
+- Uses Go's webview bindings for native window creation
+- Implements JavaScript bridge for device access
+- Handles media device enumeration and access
+
+## Usage
+The webview is initialized in the main application and serves as the primary interface for the desktop application. It loads the frontend application from the local development server or built assets.
+

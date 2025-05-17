@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Structure
+
+This is a Go-based web application with a React frontend, using webview for the desktop interface.
+
+## Key Components
+
+### Backend
+- [main.go](mdc:main.go) - Main application entry point
+- [webview/app.go](mdc:webview/app.go) - Webview application implementation
+- [config/config.go](mdc:config/config.go) - Configuration management
+
+### Frontend
+- Frontend assets are built into `static/dist/`
+- Uses Vite for build tooling
+- React-based UI components
+
+### Build System
+- [Taskfile.yml](mdc:Taskfile.yml) - Main build configuration
+- Uses Go modules for dependency management
+- npm for frontend dependencies
+
+## Build Process
+1. Frontend assets are built using Vite
+2. Go application is compiled with webview support
+3. Final binary is placed in `bin/server.exe` (Windows)
+
+## Development
+- Use `task dev` to run in development mode
+- Frontend development server runs on configured port
+- Backend runs with hot-reload support
+

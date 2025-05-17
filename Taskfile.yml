@@ -5,11 +5,11 @@ vars:
   VERSION:
     sh: git describe --tags --always --dirty
   BUILD_TIME:
-    sh: date -u '+%Y-%m-%d_%H:%M:%S'
+    sh: powershell -Command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"
   GIT_COMMIT:
     sh: git rev-parse HEAD
   GO_VERSION:
-    sh: go version | cut -d ' ' -f 3
+    sh: powershell -Command "(go version).Split(' ')[2]"
   LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
 
 tasks:
@@ -20,33 +20,66 @@ tasks:
       - task: run
 
   install:
-    desc: Install project dependencies
+    desc: Install all dependencies
+    deps: [install:go, install:frontend]
+
+  install:go:
+    desc: Install Go dependencies
     cmds:
+      - go mod download
       - go mod tidy
-      - go install github.com/gorilla/mux@latest
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-      - export PATH=$PATH:$(go env GOPATH)/bin
+
+  install:frontend:
+    desc: Install frontend dependencies
+    cmds:
+      - npm install
+      - npm install -D vite @vitejs/plugin-react
+
+  build:windows:
+    platforms: [windows]
+    cmds:
+    - >-
+      go build -ldflags "-H windowsgui -s -w
+      -X main.version={{.VERSION}}
+      -X main.buildTime={{.BUILD_TIME}}
+      -X main.gitCommit={{.GIT_COMMIT}}
+      -X main.goVersion={{.GO_VERSION}}"
+      -o bin\\server.exe main.go
 
   build:
     desc: Build the application
-    deps: [lint]
+    deps: [lint, build:frontend]
     cmds:
-      - go build -ldflags "{{.LDFLAGS}}" -o bin/server main.go
+      - go build -o bin/server main.go
+        
+  build:frontend:
+    desc: Build frontend assets
+    cmds:
+      - npm run build
 
   run:
     desc: Run the application
     cmds:
-      - ./bin/server
+      - bin\\server.exe
 
   dev:
     desc: Run development environment
+    deps: [dev:backend, dev:frontend]
+
+  dev:backend:
+    desc: Run backend in development mode
     cmds:
       - go run main.go
+
+  dev:frontend:
+    desc: Run frontend development server
+    cmds:
+      - npm run dev
 
   clean:
     desc: Clean build artifacts
     cmds:
-      - rm -rf bin/ uploads/
+      - rm -rf bin/ uploads/ dist/ node_modules/
 
   lint:
     desc: Run all linters
@@ -62,7 +95,7 @@ tasks:
   lint:frontend:
     desc: Run linters for frontend code
     cmds:
-      - echo "Frontend linting not configured yet"
+      - npm run lint
 
   lint:fix:
     desc: Fix all linting issues
@@ -76,7 +109,7 @@ tasks:
   lint:fix:frontend:
     desc: Fix linting issues in frontend code
     cmds:
-      - echo "Frontend lint fixing not configured yet"
+      - npm run lint:fix
 
   test:
     desc: Run all tests

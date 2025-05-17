@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Build System
+
+The project uses Task as its build system, defined in [Taskfile.yml](mdc:Taskfile.yml).
+
+## Main Tasks
+
+### Development
+- `task dev` - Runs both frontend and backend in development mode
+- `task dev:frontend` - Runs frontend development server
+- `task dev:backend` - Runs backend in development mode
+
+### Building
+- `task build` - Builds both frontend and backend
+- `task build:frontend` - Builds frontend assets
+- `task build:windows` - Builds Windows-specific binary
+
+### Linting
+- `task lint` - Runs all linters
+- `task lint:frontend` - Lints frontend code
+- `task lint:backend` - Lints backend code
+- `task lint:fix` - Fixes linting issues
+
+### Installation
+- `task install` - Installs all dependencies
+- `task install:frontend` - Installs frontend dependencies
+- `task install:go` - Installs Go dependencies
+
+## Build Configuration
+
+### Windows Build
+- Uses `-H windowsgui` flag for GUI application
+- Embeds version information via ldflags
+- Outputs to `bin/server.exe`
+
+### Frontend Build
+- Uses Vite for building
+- Outputs to `static/dist/`
+- Includes TypeScript compilation
+
+## Dependencies
+- Go modules for backend
+- npm for frontend
+- Task for build orchestration
+

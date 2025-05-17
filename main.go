@@ -1,94 +1,56 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
-	"time"
+
+	"kiosk-video-recorder/config"
+	"kiosk-video-recorder/handlers"
+	"kiosk-video-recorder/webview"
 
 	"github.com/gorilla/mux"
 )
 
-const (
-	UPLOAD_DIR = "uploads"
-)
-
-func init() {
-	// Create uploads directory if it doesn't exist
-	os.MkdirAll(UPLOAD_DIR, os.ModePerm)
-}
-
-func uploadVideo(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(32 << 20) // 32MB max upload size
-
-	file, handler, err := r.FormFile("video")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	filename := fmt.Sprintf("video_%d_%s", time.Now().Unix(), handler.Filename)
-	filepath := filepath.Join(UPLOAD_DIR, filename)
-
-	f, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer f.Close()
-
-	_, err = io.Copy(f, file)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Video uploaded successfully", "filename": filename})
-}
-
-func getVideos(w http.ResponseWriter, r *http.Request) {
-	files, err := os.ReadDir(UPLOAD_DIR)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	videos := []map[string]string{}
-	for _, file := range files {
-		if !file.IsDir() {
-			fileInfo, err := os.Stat(filepath.Join(UPLOAD_DIR, file.Name()))
-			if err != nil {
-				continue
-			}
-			videos = append(videos, map[string]string{
-				"filename":  file.Name(),
-				"timestamp": strconv.FormatInt(fileInfo.ModTime().Unix(), 10),
-			})
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(videos)
-}
-
-func main() {
+func startServer() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/upload", uploadVideo).Methods("POST")
-	r.HandleFunc("/api/videos", getVideos).Methods("GET")
+	// API routes
+	r.HandleFunc("/api/upload", handlers.UploadVideo).Methods("POST")
+	r.HandleFunc("/api/videos", handlers.GetVideos).Methods("GET")
 
 	// Serve static files
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 
 	http.Handle("/", r)
 
-	fmt.Println("Server starting on :8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("Server starting on :%s...", config.Port)
+
+	// Create server with timeouts
+	srv := &http.Server{
+		Addr:         ":" + config.Port,
+		Handler:      r,
+		ReadTimeout:  config.ReadTimeout,
+		WriteTimeout: config.WriteTimeout,
+		IdleTimeout:  config.IdleTimeout,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+}
+
+func main() {
+	// Setup environment
+	if err := config.SetupEnvironment(); err != nil {
+		log.Fatalf("Failed to setup environment: %v", err)
+	}
+
+	// Start the HTTP server
+	startServer()
+
+	// Start the webview application
+	app := webview.New()
+	app.Start()
 }
