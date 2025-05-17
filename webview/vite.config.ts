@@ -4,14 +4,14 @@ import { resolve } from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   root: 'src',
-  base: './',  // Use relative paths for assets
+  base: '/',  // Use absolute paths for assets
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')
     }
   },
   build: {
-    outDir: '../static/dist',
+    outDir: resolve(__dirname, '../static/dist'),
     emptyOutDir: true,
     sourcemap: true,
     assetsDir: 'assets',
