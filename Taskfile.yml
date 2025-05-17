@@ -66,7 +66,7 @@ tasks:
     desc: Build frontend assets
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - powershell -Command "Set-Location {{.FRONTEND_DIR}}; npm run build"
+    - npm run build
 
   run:
     desc: Run the application
@@ -86,7 +86,7 @@ tasks:
     desc: Run frontend development server
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - powershell -Command "Set-Location {{.FRONTEND_DIR}}; npm run dev"
+    - npm run dev
 
   watch:
     desc: Watch for changes and rebuild
@@ -127,7 +127,7 @@ tasks:
     desc: Run linters for frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - powershell -Command "Set-Location {{.FRONTEND_DIR}}; npm run lint"
+    - npm run lint
 
   lint:fix:
     desc: Fix all linting issues
@@ -142,7 +142,7 @@ tasks:
     desc: Fix linting issues in frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - powershell -Command "Set-Location {{.FRONTEND_DIR}}; npm run lint:fix"
+    - npm run lint:fix
 
   test:
     desc: Run all tests
@@ -159,7 +159,7 @@ tasks:
     desc: Run TypeScript type checking
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - powershell -Command "Set-Location {{.FRONTEND_DIR}}; npm run typecheck"
+    - npm run typecheck
 
   setup:
     desc: Initial project setup

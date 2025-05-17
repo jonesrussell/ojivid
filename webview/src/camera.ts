@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference lib="dom" />
 
 type MediaDeviceInfoExt = MediaDeviceInfo & { label: string };
 
@@ -20,9 +21,10 @@ class CameraManager {
         console.log("Platform:", navigator.platform);
 
         if (navigator.permissions) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const [camera, microphone] = await Promise.all([
-                navigator.permissions.query({ name: "camera" as PermissionName }),
-                navigator.permissions.query({ name: "microphone" as PermissionName })
+                navigator.permissions.query({ name: "camera" } as unknown as PermissionDescriptor),
+                navigator.permissions.query({ name: "microphone" } as unknown as PermissionDescriptor)
             ]);
             console.log("Camera permission:", camera.state);
             console.log("Microphone permission:", microphone.state);
