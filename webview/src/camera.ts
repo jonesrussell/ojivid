@@ -3,7 +3,7 @@
 
 type MediaDeviceInfoExt = MediaDeviceInfo & { label: string };
 
-class CameraManager {
+export class CameraManager {
     private stream: MediaStream | null = null;
     private videoDevices: MediaDeviceInfoExt[] = [];
 
@@ -43,7 +43,7 @@ class CameraManager {
         video.playsInline = true;
 
         const controls = this.createCameraControls();
-        document.body.append(video, controls);
+        document.querySelector('.video-container')?.append(video, controls);
     }
 
     private createDeviceSelector(): void {
@@ -62,10 +62,11 @@ class CameraManager {
 
         const button = document.createElement("button");
         button.textContent = "Start Camera";
+        button.className = "btn btn-primary";
         button.onclick = () => this.startCamera(select.value);
 
         container.append(select, button);
-        document.body.appendChild(container);
+        document.querySelector('.camera-selector')?.appendChild(container);
     }
 
     private createCameraControls(): HTMLDivElement {
@@ -75,6 +76,7 @@ class CameraManager {
         if (this.videoDevices.length > 1) {
             const switchButton = document.createElement("button");
             switchButton.textContent = "Switch Camera";
+            switchButton.className = "btn btn-primary";
             switchButton.onclick = () => this.switchCamera();
             controls.appendChild(switchButton);
         }

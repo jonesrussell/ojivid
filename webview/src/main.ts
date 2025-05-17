@@ -1,34 +1,89 @@
-import './style.css'
+import { CameraManager } from './camera';
+import './styles.css';
 
-interface AppState {
-  count: number
+class App {
+    private cameraManager: CameraManager;
+    private currentView: string = 'record';
+
+    constructor() {
+        this.cameraManager = new CameraManager();
+        this.initializeNavigation();
+        this.initializeApp();
+    }
+
+    private async initializeApp(): Promise<void> {
+        try {
+            await this.cameraManager.init();
+        } catch (error) {
+            console.error('Failed to initialize camera:', error);
+            this.showError('Failed to initialize camera. Please check your camera permissions.');
+        }
+    }
+
+    private initializeNavigation(): void {
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const view = button.getAttribute('data-view');
+                if (view) {
+                    this.switchView(view);
+                }
+            });
+        });
+    }
+
+    private switchView(view: string): void {
+        if (view === this.currentView) return;
+
+        // Update navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+        });
+
+        // Update views
+        document.querySelectorAll('.view').forEach(v => {
+            v.classList.toggle('active', v.id === `${view}-view`);
+        });
+
+        this.currentView = view;
+
+        // Handle view-specific initialization
+        switch (view) {
+            case 'record':
+                this.cameraManager.cleanupExistingVideo();
+                this.cameraManager.init().catch(console.error);
+                break;
+            case 'edit':
+                // Initialize editor view
+                break;
+            case 'view':
+                // Initialize viewer view
+                break;
+        }
+    }
+
+    private showError(message: string): void {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+
+        // Remove error message after 5 seconds
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 5000);
+    }
 }
 
-const state: AppState = {
-  count: 0
-}
+// Initialize the application
+new App();
 
-function updateUI() {
-  const app = document.querySelector<HTMLDivElement>('#app')!
-  app.innerHTML = `
-    <div class="app">
-      <h1>Ojivid</h1>
-      <div class="card">
-        <button id="counter">count is ${state.count}</button>
-        <p>
-          Edit <code>src/main.ts</code> and save to test HMR
-        </p>
-      </div>
-    </div>
-  `
-
-  // Add event listener to the button
-  const button = document.querySelector<HTMLButtonElement>('#counter')!
-  button.addEventListener('click', () => {
-    state.count++
-    updateUI()
-  })
-}
-
-// Initial render
-updateUI() 
+// Add HMR support
+if (import.meta.hot) {
+    import.meta.hot.accept(() => {
+        // Cleanup and reinitialize
+        const cameraManager = new CameraManager();
+        cameraManager.cleanupExistingVideo();
+        cameraManager.init().catch(console.error);
+    });
+} 

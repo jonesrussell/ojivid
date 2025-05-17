@@ -3,63 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
     <title>Kiosk Video Recorder</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav-content">
-            <a href="./" class="nav-brand">Kiosk Video Recorder</a>
-            <div class="nav-links">
-                <a href="./" class="nav-link active">Record</a>
-                <a href="./edit.html" class="nav-link">Edit</a>
-                <a href="./view.html" class="nav-link">View</a>
-            </div>
-        </div>
-    </nav>
+    <div class="app">
+        <header class="header">
+            <h1>Kiosk Video Recorder</h1>
+            <nav class="nav">
+                <button class="nav-btn active" data-view="record">Record</button>
+                <button class="nav-btn" data-view="edit">Edit</button>
+                <button class="nav-btn" data-view="view">View</button>
+            </nav>
+        </header>
 
-    <div class="main-content">
-        <div class="header">
-            <h1>Record Video</h1>
-            <div class="status">
-                <span class="status-indicator ready"></span>
-                <span id="status-text">Ready</span>
-            </div>
-        </div>
-
-        <div class="camera-section">
-            <div id="camera-container" class="camera-container">
-                <!-- Camera view will be inserted here -->
-            </div>
-
-            <div class="control-panel">
-                <div class="control-group">
-                    <h3>Recording Controls</h3>
-                    <div class="button-group">
-                        <button id="record-button" class="danger">Start Recording</button>
-                        <button id="stop-button" class="secondary" disabled>Stop Recording</button>
-                    </div>
-                    <div class="recording-info">
-                        <div>Duration: <span id="recording-duration">00:00:00</span></div>
-                        <div>File: <span id="recording-file">Not recording</span></div>
-                    </div>
+        <main class="main">
+            <section id="record-view" class="view active">
+                <div class="camera-container">
+                    <div class="camera-selector"></div>
+                    <div class="video-container"></div>
+                    <div class="camera-controls"></div>
                 </div>
+            </section>
 
-                <div class="control-group">
-                    <h3>Camera Settings</h3>
-                    <select id="camera-select">
-                        <option value="">Select Camera...</option>
-                    </select>
-                    <div class="button-group">
-                        <button id="switch-camera">Switch Camera</button>
-                        <button id="refresh-devices">Refresh Devices</button>
-                    </div>
+            <section id="edit-view" class="view">
+                <div class="editor-container">
+                    <div class="video-list"></div>
+                    <div class="editor-preview"></div>
+                    <div class="editor-controls"></div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+            <section id="view-view" class="view">
+                <div class="viewer-container">
+                    <div class="video-gallery"></div>
+                    <div class="viewer-controls"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>© 2025 Kiosk Video Recorder</p>
+        </footer>
     </div>
-
-    <script type="module" src="./main.ts"></script>
+    <script type="module" src="main.ts"></script>
 </body>
 </html> 
