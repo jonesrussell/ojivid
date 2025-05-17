@@ -5,22 +5,12 @@ vars:
   VERSION:
     sh: git describe --tags --always --dirty
   BUILD_TIME:
-    sh: date -u '+%Y-%m-%d_%H:%M:%S'
+    sh: powershell -Command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"
   GIT_COMMIT:
     sh: git rev-parse HEAD
   GO_VERSION:
-    sh: go version | cut -d ' ' -f 3
+    sh: powershell -Command "(go version).Split(' ')[2]"
   LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
-  # OS-specific build flags
-  BUILD_FLAGS:
-    sh: |
-      if [ "$(uname)" = "Linux" ]; then
-        echo "-ldflags '{{.LDFLAGS}}'"
-      elif [ "$(uname)" = "Windows_NT" ]; then
-        echo "-ldflags '-H windowsgui {{.LDFLAGS}}'"
-      else
-        echo "-ldflags '{{.LDFLAGS}}'"
-      fi
 
 tasks:
   default:
@@ -45,22 +35,20 @@ tasks:
       - npm install
       - npm install -D vite @vitejs/plugin-react
 
+  build:windows:
+    platforms: [windows]
+    cmds:
+      - set CGO_ENABLED=1
+      - set GOOS=windows
+      - set GOARCH=amd64
+      - go build -tags "windows webview2" -ldflags "-H windowsgui -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}" -o bin/server main.go
+
   build:
     desc: Build the application
     deps: [lint, build:frontend]
     cmds:
-      - |
-        export CGO_ENABLED=1
-        export CGO_CFLAGS="-I/usr/include/webkitgtk-4.0"
-        export CGO_LDFLAGS="-lwebkit2gtk-4.0"
-        if [ "$(uname)" = "Linux" ]; then
-          go build -tags webview_gtk {{.BUILD_FLAGS}} -o bin/server main.go
-        elif [ "$(uname)" = "Windows_NT" ]; then
-          go build -tags webview_windows {{.BUILD_FLAGS}} -o bin/server main.go
-        else
-          go build -tags webview_cocoa {{.BUILD_FLAGS}} -o bin/server main.go
-        fi
-
+      - go build -o bin/server main.go
+        
   build:frontend:
     desc: Build frontend assets
     cmds:
