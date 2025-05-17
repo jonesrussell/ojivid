@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Video Recorder</title>
+</head>
+<body>
+    <script type="module">
+        import { initCameraAndVideo } from './src/camera.js';
+        
+        // Initialize camera when DOM is ready
+        document.addEventListener('DOMContentLoaded', initCameraAndVideo);
+    </script>
+</body>
+</html> 
