@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the application for Windows
+    cmds:
+    - go build -ldflags "-H windowsgui" -o bin\server.exe main.go
+
+  run:
+    desc: Run the application on Windows
+    cmds:
+    - bin\server.exe
