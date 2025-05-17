@@ -38,10 +38,7 @@ tasks:
   build:windows:
     platforms: [windows]
     cmds:
-      - set CGO_ENABLED=1
-      - set GOOS=windows
-      - set GOARCH=amd64
-      - go build -tags "windows webview2" -ldflags "-H windowsgui -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}" -o bin/server main.go
+      - go build -ldflags "-H windowsgui -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}" -o bin/server main.go
 
   build:
     desc: Build the application
