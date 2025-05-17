@@ -3,13 +3,14 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  root: 'webview',
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
+      '@': resolve(__dirname, './webview/src')
     }
   },
   build: {
-    outDir: 'static/dist',
+    outDir: '../static/dist',
     emptyOutDir: true,
     sourcemap: true
   },

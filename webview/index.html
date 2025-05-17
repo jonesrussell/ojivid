@@ -60,14 +60,6 @@
         </div>
     </div>
 
-    <script type="module">
-        // Add cache busting using timestamp
-        const timestamp = new Date().getTime();
-        const moduleUrl = `./src/camera.js?v=${timestamp}`;
-        import { initCameraAndVideo } from moduleUrl;
-        
-        // Initialize camera when DOM is ready
-        document.addEventListener('DOMContentLoaded', initCameraAndVideo);
-    </script>
+    <script type="module" src="/src/camera.ts"></script>
 </body>
 </html> 
