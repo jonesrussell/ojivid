@@ -18,8 +18,8 @@ func startServer() {
 	r.HandleFunc("/api/upload", handlers.UploadVideo).Methods("POST")
 	r.HandleFunc("/api/videos", handlers.GetVideos).Methods("GET")
 
-	// Serve static files
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
+	// Serve static files from dist directory
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/dist")))
 
 	http.Handle("/", r)
 
