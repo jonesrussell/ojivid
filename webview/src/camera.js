@@ -83,7 +83,7 @@ function createDeviceSelector(videoDevices) {
         const selectedDeviceId = select.value;
         try {
             const stream = await initCamera(selectedDeviceId);
-            const video = setupVideo(stream);
+            const video = setupVideo(stream, videoDevices);
             container.remove(); // Remove the selector after camera starts
             document.body.appendChild(video);
         } catch (error) {
@@ -116,7 +116,8 @@ async function initCamera(deviceId) {
             label: t.label,
             enabled: t.enabled,
             muted: t.muted,
-            readyState: t.readyState
+            readyState: t.readyState,
+            settings: t.getSettings()
         })));
         
         return stream;
@@ -135,8 +136,11 @@ async function initCamera(deviceId) {
 }
 
 // Set up video element
-function setupVideo(stream) {
+function setupVideo(stream, videoDevices) {
     cleanupExistingVideo();
+    
+    const container = document.createElement('div');
+    container.className = 'camera-container';
     
     const video = document.createElement('video');
     video.srcObject = stream;
@@ -146,15 +150,48 @@ function setupVideo(stream) {
     video.style.height = '480px';
     video.style.border = '1px solid #ccc';
     video.style.borderRadius = '5px';
-    video.style.margin = '20px';
+    
+    // Create camera controls
+    const controls = document.createElement('div');
+    controls.className = 'camera-controls';
+    
+    // Add switch camera button if multiple cameras are available
+    if (videoDevices.length > 1) {
+        const switchButton = document.createElement('button');
+        switchButton.textContent = 'Switch Camera';
+        switchButton.onclick = async () => {
+            try {
+                const currentDeviceId = stream.getVideoTracks()[0].getSettings().deviceId;
+                const currentIndex = videoDevices.findIndex(d => d.deviceId === currentDeviceId);
+                const nextIndex = (currentIndex + 1) % videoDevices.length;
+                const nextDeviceId = videoDevices[nextIndex].deviceId;
+                
+                const newStream = await initCamera(nextDeviceId);
+                const newVideo = setupVideo(newStream, videoDevices);
+                container.remove();
+                document.body.appendChild(newVideo);
+            } catch (error) {
+                showError(error);
+            }
+        };
+        controls.appendChild(switchButton);
+    }
+    
+    container.appendChild(video);
+    container.appendChild(controls);
     
     // Log video element properties
     video.onloadedmetadata = () => {
+        const settings = stream.getVideoTracks()[0].getSettings();
         console.log('Video element properties:', {
             width: video.videoWidth,
             height: video.videoHeight,
             readyState: video.readyState,
-            error: video.error
+            error: video.error,
+            deviceId: settings.deviceId,
+            label: stream.getVideoTracks()[0].label,
+            frameRate: settings.frameRate,
+            aspectRatio: settings.aspectRatio
         });
     };
 
@@ -164,7 +201,7 @@ function setupVideo(stream) {
         showError(error);
     };
 
-    return video;
+    return container;
 }
 
 // Show error message
@@ -200,12 +237,17 @@ export async function initCameraAndVideo() {
         console.log('Available devices:', devices.map(d => ({
             kind: d.kind,
             label: d.label,
-            deviceId: d.deviceId
+            deviceId: d.deviceId,
+            groupId: d.groupId
         })));
 
         // Find the video devices
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        console.log('Video devices:', videoDevices);
+        console.log('Video devices:', videoDevices.map(d => ({
+            label: d.label,
+            deviceId: d.deviceId,
+            groupId: d.groupId
+        })));
 
         if (videoDevices.length === 0) {
             throw new Error('No video devices found');
