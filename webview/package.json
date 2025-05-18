@@ -27,6 +27,7 @@
     "vite": "^6.3.3"
   },
   "dependencies": {
+    "lit-html": "^3.3.0",
     "terser": "^5.39.2"
   }
 }

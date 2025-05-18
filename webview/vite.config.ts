@@ -9,7 +9,7 @@ export default defineConfig(({ command, mode }) => {
 
   const commonConfig = {
     root: '.',
-    base: './', // Use relative paths for assets
+    base: '/', // Use absolute paths for assets
 
     resolve: {
       alias: {
@@ -30,7 +30,10 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         input: resolve(__dirname, 'src/splash.html')
       },
+      copyPublicDir: true, // Ensure public directory is copied
     },
+
+    publicDir: 'src/assets', // Serve static assets from src/assets
   } satisfies UserConfig;
 
   // Development specific config

@@ -5,62 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ojiosk - Loading</title>
     <link rel="stylesheet" href="./styles.css">
-    <style>
-        .splash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--background);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .splash-logo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 2rem;
-            animation: pulse 2s infinite;
-        }
-
-        .splash-title {
-            font-size: 2rem;
-            color: var(--text);
-            margin-bottom: 1rem;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-    </style>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>">
 </head>
 <body>
-    <div class="splash">
-        <img src="./assets/logo.png" alt="Ojiosk Logo" class="splash-logo">
-        <h1 class="splash-title">Ojiosk</h1>
-        <div class="loading-spinner"></div>
-    </div>
-    <div id="app" style="display: none;"></div>
-    <script type="module" src="./main.ts"></script>
+    <div id="app"></div>
+    <script type="module">
+        import { createView } from './templates';
+        
+        // Create the splash view
+        const splashContent = createView('splash');
+        document.getElementById('app').appendChild(splashContent);
+        
+        // Create and append the layout
+        const layoutView = createView('layout', { 
+            content: splashContent.outerHTML,
+            title: 'Ojiosk - Loading'
+        });
+        
+        // Replace the entire body content with the layout
+        document.body.innerHTML = layoutView.outerHTML;
+        
+        // Re-run the main script to initialize the app
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = './main.ts';
+        document.body.appendChild(script);
+    </script>
 </body>
 </html> 
