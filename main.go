@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"kiosk-video-recorder/config"
@@ -21,7 +22,23 @@ func startServer() {
 
 	// Serve splash.html for root route
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join("webview", "dist", "splash.html"))
+		// Try multiple possible locations for splash.html
+		possiblePaths := []string{
+			filepath.Join("webview", "dist", "src", "splash.html"),  // Vite build output
+			filepath.Join("webview", "dist", "splash.html"),         // Alternative location
+			filepath.Join("webview", "src", "splash.html"),          // Source location
+		}
+
+		// Try each possible path
+		for _, path := range possiblePaths {
+			if _, err := os.Stat(path); err == nil {
+				http.ServeFile(w, r, path)
+				return
+			}
+		}
+
+		// If splash.html is not found, serve index.html
+		http.ServeFile(w, r, filepath.Join("webview", "dist", "index.html"))
 	})
 
 	// Serve other static files from dist directory
