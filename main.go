@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"kiosk-video-recorder/config"
 	"kiosk-video-recorder/handlers"
@@ -18,8 +19,13 @@ func startServer() {
 	r.HandleFunc("/api/upload", handlers.UploadVideo).Methods("POST")
 	r.HandleFunc("/api/videos", handlers.GetVideos).Methods("GET")
 
-	// Serve static files from dist directory
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/dist")))
+	// Serve splash.html for root route
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join("webview", "dist", "splash.html"))
+	})
+
+	// Serve other static files from dist directory
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("webview/dist")))
 
 	http.Handle("/", r)
 
