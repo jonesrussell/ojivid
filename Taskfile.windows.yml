@@ -1,10 +1,19 @@
 version: '3'
 
+vars:
+  LDFLAGS:
+  - "-H windowsgui"
+  - "-s -w"
+  - "-X main.version=`git describe --tags --always --dirty`"
+  - "-X main.buildTime=`date +%Y-%m-%d_%H:%M:%S`"
+  - "-X main.gitCommit=`git rev-parse HEAD`"
+  - "-X main.goVersion=`go version | cut -d' ' -f3`"
+
 tasks:
-  build:windows:
+  build:
     desc: Build the application for Windows
     cmds:
-    - go build -ldflags "-H windowsgui {{.LDFLAGS}}" -o bin\ojivid.exe main.go
+    - go build -ldflags "{{range .LDFLAGS}}{{.}} {{end}}" -o bin\ojivid.exe {{.MAIN_PACKAGE}}
 
   run:
     desc: Run the application on Windows

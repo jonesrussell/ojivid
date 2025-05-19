@@ -1,25 +1,42 @@
 version: '3'
 
+# --------------------------------------------
+# Global Variables
+# --------------------------------------------
 vars:
   VERSION: git describe --tags --always --dirty
   BUILD_TIME: Get-Date -Format yyyy-MM-dd_HH:mm:ss
   GIT_COMMIT: git rev-parse HEAD
   GO_VERSION: '(go version).Split(\" \")[2]'
 
+  # Platform detection
+  PLATFORM: '{{if eq OS "windows"}}windows{{else if eq OS "linux"}}linux{{else}}unknown{{end}}'
+
+  # Directories
   BIN_DIR: "bin"
   FRONTEND_DIR: "webview"
   UPLOAD_DIR: "uploads"
   MAIN_PACKAGE: "main.go"
   DIST_DIR: "static/dist"
 
-  LDFLAGS: "-s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}"
+  # Build flags
+  LDFLAGS: >-
+    -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
 
+# --------------------------------------------
+# Taskfile Settings
+# --------------------------------------------
 output: prefixed
 silent: false
 
+# Include platform-specific task files
 includes:
-  build: ./Taskfile.{{OS}}.yml
+  windows: ./Taskfile.windows.yml
+  linux: ./Taskfile.linux.yml
 
+# --------------------------------------------
+# General Tasks
+# --------------------------------------------
 tasks:
   default:
     desc: Install dependencies, build, and run the application
@@ -29,6 +46,9 @@ tasks:
     - task test
     - task lint
 
+  # --------------------------------------------
+  # Dependency Management
+  # --------------------------------------------
   deps:
     desc: Install all dependencies
     deps: [ deps:backend, deps:frontend ]
@@ -43,8 +63,11 @@ tasks:
     desc: Install frontend dependencies
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm install --legacy-peer-deps
+    - npm install
 
+  # --------------------------------------------
+  # Build Tasks
+  # --------------------------------------------
   build:
     desc: Build the application
     deps: [ build:frontend, build:backend ]
@@ -57,13 +80,19 @@ tasks:
   build:backend:
     desc: Build backend binary
     cmds:
-    - task: build:{{.OS}}
+    - task: windows:build
 
+  # --------------------------------------------
+  # Run Tasks
+  # --------------------------------------------
   run:
     desc: Run application
     cmds:
     - ./bin/ojivid.exe
 
+  # --------------------------------------------
+  # Development Tasks
+  # --------------------------------------------
   dev:
     desc: Run development server
     cmds:
@@ -83,6 +112,9 @@ tasks:
     cmds:
     - go run {{.MAIN_PACKAGE}}
 
+  # --------------------------------------------
+  # Testing & Linting
+  # --------------------------------------------
   test:
     desc: Run tests
     cmds:
@@ -105,6 +137,9 @@ tasks:
     cmds:
     - npm run lint
 
+  # --------------------------------------------
+  # Cleanup Tasks
+  # --------------------------------------------
   clean:
     desc: Clean build artifacts
     cmds:

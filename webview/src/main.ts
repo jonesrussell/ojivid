@@ -59,12 +59,30 @@ if (import.meta.hot) {
 // Debug mode handling
 const isDebug = window.location.search.includes('debug=true');
 
+// Debug panel element - only used in debug mode
+let debugPanel: HTMLDivElement | undefined;
+
+// Function to append debug messages to the debug panel
+function appendToDebugPanel(type: 'log' | 'error' | 'warn' | 'info', ...args: unknown[]): void {
+    if (!debugPanel) return;
+    
+    const line = document.createElement('div');
+    line.style.color = type === 'error' ? '#ff6b6b' : 
+                      type === 'warn' ? '#ffd93d' : 
+                      type === 'info' ? '#4dabf7' : '#fff';
+    line.textContent = `[${type}] ${args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ')}`;
+    debugPanel.appendChild(line);
+    debugPanel.scrollTop = debugPanel.scrollHeight;
+}
+
 if (isDebug) {
     // Enable debug logging
     console.log('Debug mode enabled');
     
     // Add debug UI
-    const debugPanel = document.createElement('div');
+    debugPanel = document.createElement('div');
     debugPanel.style.cssText = `
         position: fixed;
         bottom: 0;
@@ -88,18 +106,6 @@ if (isDebug) {
         warn: console.warn,
         info: console.info
     };
-
-    function appendToDebugPanel(type: string, ...args: any[]) {
-        const line = document.createElement('div');
-        line.style.color = type === 'error' ? '#ff6b6b' : 
-                          type === 'warn' ? '#ffd93d' : 
-                          type === 'info' ? '#4dabf7' : '#fff';
-        line.textContent = `[${type}] ${args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ')}`;
-        debugPanel.appendChild(line);
-        debugPanel.scrollTop = debugPanel.scrollHeight;
-    }
 
     console.log = (...args) => {
         originalConsole.log(...args);
