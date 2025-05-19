@@ -1,20 +1,18 @@
 version: '3'
 
 vars:
-  VERSION: {sh: git describe --tags --always --dirty}
-  BUILD_TIME: {sh: powershell -Command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"}
-  GIT_COMMIT: {sh: git rev-parse HEAD}
-  GO_VERSION: {sh: powershell -Command "(go version).Split(' ')[2]"}
+  VERSION: git describe --tags --always --dirty
+  BUILD_TIME: Get-Date -Format yyyy-MM-dd_HH:mm:ss
+  GIT_COMMIT: git rev-parse HEAD
+  GO_VERSION: '(go version).Split(\" \")[2]'
 
-  BIN_DIR: bin
-  FRONTEND_DIR: webview
-  UPLOAD_DIR: uploads
-  MAIN_PACKAGE: main.go
-  DIST_DIR: static/dist
+  BIN_DIR: "bin"
+  FRONTEND_DIR: "webview"
+  UPLOAD_DIR: "uploads"
+  MAIN_PACKAGE: "main.go"
+  DIST_DIR: "static/dist"
 
-  LDFLAGS: >-
-    -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} 
-    -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
+  LDFLAGS: "-s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}"
 
 output: prefixed
 silent: false
@@ -27,93 +25,81 @@ tasks:
   default:
     desc: Install dependencies, build, and run the application
     cmds:
-      - task deps
-      - task build
-      - task test
-      - task lint
+    - task deps
+    - task build
+    - task test
+    - task lint
 
   deps:
     desc: Install all dependencies
-    deps: [deps:go, deps:frontend]
+    deps: [ deps:go, deps:frontend ]
 
   deps:go:
     desc: Install Go dependencies
     cmds:
-      - go mod download
-      - go mod tidy
+    - go mod download
+    - go mod tidy
 
   deps:frontend:
     desc: Install frontend dependencies
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-      - npm install --legacy-peer-deps
+    - npm install --legacy-peer-deps
 
   build:
-    desc: Build application
+    desc: Build the application
     cmds:
-      - task build:frontend
-      - task build:backend
-
-  build:frontend:
-    desc: Build frontend assets
-    dir: "{{.FRONTEND_DIR}}"
-    cmds:
-      - npm run build
-
-  build:backend:
-    desc: Build backend application
-    cmds:
-      - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server {{.MAIN_PACKAGE}}
+    - cd webview && npm run build
+    - go build -o bin/ojivid.exe
 
   run:
     desc: Run application
     cmds:
-      - task run:platform
+    - ./bin/ojivid.exe
 
   dev:
-    desc: Run with hot reloading
+    desc: Run development server
     cmds:
-      - task dev:frontend
-      - task dev:backend
+    - go run main.go
+    env:
+      DEV: "1"
+      VITE_API_URL: "http://localhost:8080"
 
   dev:frontend:
     desc: Run frontend with hot reloading
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-      - npm run dev
+    - npm run dev
 
   dev:backend:
     desc: Run backend in development mode
     cmds:
-      - go run {{.MAIN_PACKAGE}}
-    wait: true
+    - go run {{.MAIN_PACKAGE}}
 
   test:
     desc: Run tests
     cmds:
-      - go test -v -race ./...
+    - go test -v -race ./...
 
   lint:
     desc: Run all linters
-    deps: [lint:backend, lint:frontend]
+    deps: [ lint:backend, lint:frontend ]
 
   lint:backend:
     desc: Lint Go code
     cmds:
-      - go fmt ./...
-      - go vet ./...
-      - golangci-lint run ./...
+    - go fmt ./...
+    - go vet ./...
+    - golangci-lint run ./...
 
   lint:frontend:
     desc: Lint frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-      - npm run lint
+    - npm run lint
 
   clean:
     desc: Clean build artifacts
     cmds:
-      - rm -rf {{.DIST_DIR}} coverage.out coverage.html
-      - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist
-      - go clean -cache -testcache
-      
+    - rm -rf webview/dist
+    - rm -rf bin
