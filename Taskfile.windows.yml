@@ -5,17 +5,30 @@ vars:
   - "-H windowsgui"
   - "-s -w"
   - "-X main.version=`git describe --tags --always --dirty`"
-  - "-X main.buildTime=`date +%Y-%m-%d_%H:%M:%S`"
+  - "-X main.buildTime={{.BUILD_TIME}}"
   - "-X main.gitCommit=`git rev-parse HEAD`"
-  - "-X main.goVersion=`go version | cut -d' ' -f3`"
+  - "-X main.goVersion={{.GO_VERSION}}"
 
 tasks:
   build:
     desc: Build the application for Windows
     cmds:
-    - go build -ldflags "{{range .LDFLAGS}}{{.}} {{end}}" -o bin\ojivid.exe {{.MAIN_PACKAGE}}
+    - cmd: |
+        set BUILD_TIME=%date:~-4%-%date:~3,2%-%date:~0,2%_%time:~0,2%:%time:~3,2%:%time:~6,2%
+        set BUILD_TIME=%BUILD_TIME: =0%
+        set GO_VERSION=%go version%
+        set GO_VERSION=%GO_VERSION:~13%
+        go build -ldflags "-H windowsgui -s -w -X main.version=`git describe --tags --always --dirty` -X main.buildTime=%BUILD_TIME% -X main.gitCommit=`git rev-parse HEAD` -X main.goVersion=%GO_VERSION%" -o bin\ojivid.exe main.go
+      silent: true
 
   run:
     desc: Run the application on Windows
     cmds:
     - bin\ojivid.exe
+
+  clean:
+    desc: Clean build artifacts on Windows
+    cmds:
+    - cmd /c "taskkill /F /IM ojivid.exe 2>nul || exit 0"
+    - cmd /c "if exist webview\dist rmdir /s /q webview\dist"
+    - cmd /c "if exist bin rmdir /s /q bin"

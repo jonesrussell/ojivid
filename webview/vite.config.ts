@@ -7,7 +7,7 @@ export default defineConfig(({ command, mode }) => {
   // Load env file based on `mode` in the current working directory
   const env = loadEnv(mode, process.cwd(), '');
 
-  const commonConfig = {
+  const commonConfig: UserConfig = {
     root: '.',
     base: '/', // Use absolute paths for assets
 
@@ -41,8 +41,9 @@ export default defineConfig(({ command, mode }) => {
       copyPublicDir: true, // Ensure public directory is copied
     },
 
-    publicDir: 'src/assets', // Serve static assets from src/assets
-  } satisfies UserConfig;
+    // Move static assets to public directory
+    publicDir: 'public',
+  };
 
   // Development specific config
   if (command === 'serve') {
@@ -50,7 +51,7 @@ export default defineConfig(({ command, mode }) => {
       ...commonConfig,
       server: {
         port: 3000,
-        strictPort: true,
+        strictPort: false, // Allow port adjustment if 3000 is in use
         watch: {
           usePolling: true,
           interval: 1000,
@@ -70,7 +71,7 @@ export default defineConfig(({ command, mode }) => {
         },
         fs: {
           strict: false, // Allow serving files from outside the root
-          allow: ['..'] // Allow serving files from parent directory
+          allow: ['public'] // Only allow access to public directory
         },
         cors: true, // Enable CORS
         host: '0.0.0.0', // Listen on all interfaces
@@ -83,7 +84,8 @@ export default defineConfig(({ command, mode }) => {
           '/api': {
             target: env.VITE_API_URL || 'http://localhost:8080',
             changeOrigin: true,
-            secure: false
+            secure: false,
+            ws: true // Enable WebSocket support for API
           },
         },
       },
@@ -91,7 +93,7 @@ export default defineConfig(({ command, mode }) => {
         __DEV__: true,
         __APP_ENV__: JSON.stringify(env.APP_ENV || 'development'),
       },
-    } satisfies UserConfig;
+    };
   }
 
   // Production specific config
@@ -106,5 +108,5 @@ export default defineConfig(({ command, mode }) => {
       __DEV__: false,
       __APP_ENV__: JSON.stringify(env.APP_ENV || 'production'),
     },
-  } satisfies UserConfig;
+  };
 });

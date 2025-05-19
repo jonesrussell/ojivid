@@ -143,5 +143,4 @@ tasks:
   clean:
     desc: Clean build artifacts
     cmds:
-    - rm -rf webview/dist
-    - rm -rf bin
+    - task: windows:clean
