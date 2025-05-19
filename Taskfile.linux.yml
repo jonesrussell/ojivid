@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the application for Linux
+    cmds:
+    - go build -ldflags "-s -w" -o bin/server main.go
+
+  run:
+    desc: Run the application on Linux
+    cmds:
+    - ./bin/server

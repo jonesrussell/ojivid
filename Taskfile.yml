@@ -1,163 +1,117 @@
 version: '3'
 
-# Global variables
 vars:
-  # Version information
-  VERSION:
-    sh: git describe --tags --always --dirty
-  BUILD_TIME:
-    sh: powershell -Command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"
-  GIT_COMMIT:
-    sh: git rev-parse HEAD
-  GO_VERSION:
-    sh: powershell -Command "(go version).Split(' ')[2]"
+  VERSION: {sh: git describe --tags --always --dirty}
+  BUILD_TIME: {sh: powershell -Command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"}
+  GIT_COMMIT: {sh: git rev-parse HEAD}
+  GO_VERSION: {sh: powershell -Command "(go version).Split(' ')[2]"}
 
-  # Build configuration
   BIN_DIR: bin
   FRONTEND_DIR: webview
   UPLOAD_DIR: uploads
   MAIN_PACKAGE: main.go
   DIST_DIR: static/dist
 
-  # Build flags
   LDFLAGS: >-
-    -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
+    -s -w -X main.version={{.VERSION}} -X main.buildTime={{.BUILD_TIME}} 
+    -X main.gitCommit={{.GIT_COMMIT}} -X main.goVersion={{.GO_VERSION}}
 
-# Global settings
 output: prefixed
 silent: false
 
-# Include platform-specific tasks
 includes:
   windows: Taskfile.windows.yml
-  # linux: Taskfile.linux.yml
-  # darwin: Taskfile.darwin.yml
 
 tasks:
   default:
-    desc: Default task - installs dependencies, builds and runs the application
+    desc: Install dependencies, build, and run the application
     cmds:
-    - task build
-    - task test
-    - task lint:backend
-    - task lint:frontend
+      - task deps
+      - task build
+      - task test
+      - task lint
 
   deps:
     desc: Install all dependencies
-    deps: [ deps:go, deps:frontend ]
+    deps: [deps:go, deps:frontend]
 
   deps:go:
     desc: Install Go dependencies
     cmds:
-    - go mod download
-    - go mod tidy
+      - go mod download
+      - go mod tidy
 
   deps:frontend:
     desc: Install frontend dependencies
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm install --legacy-peer-deps
+      - npm install --legacy-peer-deps
 
   build:
-    desc: Build the application
+    desc: Build application
     cmds:
-    - task build:frontend
-    - task build:backend
+      - task build:frontend
+      - task build:backend
 
   build:frontend:
     desc: Build frontend assets
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm run build
+      - npm run build
 
   build:backend:
-    desc: Build backend application
+    desc: Build backend
     cmds:
-    - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
+      - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
 
   run:
-    desc: Run the application
+    desc: Run application
     cmds:
-    - bin/server.exe
+      - "{{.BIN_DIR}}/server.exe"
 
   dev:
-    desc: Run the application with hot reloading
+    desc: Run with hot reloading
     cmds:
-    - task dev:frontend
-    - task dev:backend
+      - task dev:frontend
+      - task dev:backend
 
   dev:frontend:
-    desc: Run the frontend with hot reloading
+    desc: Run frontend with hot reloading
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm run dev
+      - npm run dev
 
   dev:backend:
     desc: Run backend in development mode
     cmds:
-    - go run {{.MAIN_PACKAGE}}
+      - go run {{.MAIN_PACKAGE}}
     wait: true
 
   test:
-    desc: Run all tests
+    desc: Run tests
     cmds:
-    - go test -v -race ./...
-
-  test:coverage:
-    desc: Run tests with coverage report
-    cmds:
-    - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-    - go tool cover -html=coverage.out -o coverage.html
-
-  setup:
-    desc: Initial project setup
-    cmds:
-    - task deps
-    - task build
-    - task validate
+      - go test -v -race ./...
 
   lint:
     desc: Run all linters
-    deps: [ lint:backend, lint:frontend ]
+    deps: [lint:backend, lint:frontend]
 
   lint:backend:
-    desc: Run linters for Go code
+    desc: Lint Go code
     cmds:
-    - go fmt ./...
-    - go vet ./...
-    - golangci-lint run ./...
+      - go fmt ./...
+      - go vet ./...
+      - golangci-lint run ./...
 
   lint:frontend:
-    desc: Run linters for frontend code
+    desc: Lint frontend code
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - npm run lint
-
-  lint:fix:
-    desc: Fix all linting issues
-    deps: [ lint:fix:backend, lint:fix:frontend ]
-
-  lint:fix:backend:
-    desc: Fix linting issues in Go code
-    cmds:
-    - go fmt ./...
-
-  lint:fix:frontend:
-    desc: Fix linting issues in frontend code
-    dir: "{{.FRONTEND_DIR}}"
-    cmds:
-    - cd {{.FRONTEND_DIR}} && npm run lint:fix
+      - npm run lint
 
   clean:
     desc: Clean build artifacts
     cmds:
-    - rm -rf {{.DIST_DIR}}
-    - rm -rf coverage.out
-    - rm -rf coverage.html
-    - rm -rf {{.FRONTEND_DIR}}/node_modules
-    - rm -rf {{.FRONTEND_DIR}}/dist
-    - go clean -cache -testcache
-
-  validate:
-    desc: Run all validation checks
-    deps: [ lint, test ]
+      - rm -rf {{.DIST_DIR}} coverage.out coverage.html
+      - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist
+      - go clean -cache -testcache
