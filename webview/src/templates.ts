@@ -47,7 +47,7 @@ const layoutTemplate = (data: ViewData) => html`
 
 const splashTemplate = () => html`
 <div class="splash">
-    <img src="/src/assets/logo.svg" alt="Ojiosk Logo" class="splash-logo">
+    <img src="/assets/logo.svg" alt="Ojiosk Logo" class="splash-logo">
     <h1 class="splash-title">Ojiosk</h1>
     <div class="loading-spinner"></div>
 </div>

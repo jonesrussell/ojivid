@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"path/filepath"
 
@@ -14,43 +16,102 @@ import (
 )
 
 func startServer() {
+	// Create main router
 	r := mux.NewRouter()
 
-	// API routes
-	r.HandleFunc("/api/upload", handlers.UploadVideo).Methods("POST")
-	r.HandleFunc("/api/videos", handlers.GetVideos).Methods("GET")
+	// Create API router
+	apiRouter := mux.NewRouter()
+	apiRouter.HandleFunc("/api/upload", handlers.UploadVideo).Methods("POST")
+	apiRouter.HandleFunc("/api/videos", handlers.GetVideos).Methods("GET")
 
-	// Serve splash.html for root route
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Try multiple possible locations for splash.html
-		possiblePaths := []string{
-			filepath.Join("webview", "dist", "splash.html"),        // Production build
-			filepath.Join("webview", "dist", "src", "splash.html"), // Development build
-			filepath.Join("webview", "src", "splash.html"),         // Source location
+	// In development mode, proxy requests to Vite dev server
+	if os.Getenv("DEV") == "1" {
+		log.Printf("Development mode enabled - proxying to Vite dev server")
+
+		// Create a proxy handler for Vite
+		viteProxy := &httputil.ReverseProxy{
+			Director: func(req *http.Request) {
+				req.URL.Scheme = "http"
+				req.URL.Host = "localhost:3000"
+				log.Printf("Proxying to Vite: %s", req.URL.String())
+			},
+			ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+				log.Printf("Proxy error for %s: %v", r.URL.Path, err)
+				http.Error(w, fmt.Sprintf("Proxy error: %v", err), http.StatusBadGateway)
+			},
 		}
 
-		// Try each possible path
-		for _, path := range possiblePaths {
-			if _, err := os.Stat(path); err == nil {
-				http.ServeFile(w, r, path)
+		// Handle API routes
+		r.PathPrefix("/api/").Handler(apiRouter)
+
+		// Handle all other routes with Vite proxy
+		r.PathPrefix("/").Handler(viteProxy)
+	} else {
+		// Production mode - serve static files from dist directory
+		distDir := "webview/dist"
+		fs := http.FileServer(http.Dir(distDir))
+
+		// Add MIME type handlers
+		r.PathPrefix("/assets/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Log the request path
+			log.Printf("Serving asset: %s", r.URL.Path)
+
+			// Set appropriate MIME types based on file extension
+			switch filepath.Ext(r.URL.Path) {
+			case ".css":
+				w.Header().Set("Content-Type", "text/css")
+			case ".js":
+				w.Header().Set("Content-Type", "application/javascript")
+			case ".html":
+				w.Header().Set("Content-Type", "text/html")
+			}
+			http.StripPrefix("/assets/", fs).ServeHTTP(w, r)
+		}))
+
+		// Serve splash.html for root route
+		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			// Try multiple possible locations for splash.html
+			possiblePaths := []string{
+				filepath.Join(distDir, "src", "splash.html"), // Production build
+			}
+
+			// Log the current working directory and paths being checked
+			cwd, _ := os.Getwd()
+			log.Printf("Current working directory: %s", cwd)
+			for _, path := range possiblePaths {
+				log.Printf("Checking path: %s", path)
+				if _, err := os.Stat(path); err == nil {
+					log.Printf("Found splash.html at: %s", path)
+					w.Header().Set("Content-Type", "text/html")
+					http.ServeFile(w, r, path)
+					return
+				} else {
+					log.Printf("File not found at %s: %v", path, err)
+				}
+			}
+
+			// If splash.html is not found, serve index.html
+			indexPath := filepath.Join(distDir, "index.html")
+			log.Printf("Splash.html not found, trying index.html at: %s", indexPath)
+			if _, err := os.Stat(indexPath); err == nil {
+				w.Header().Set("Content-Type", "text/html")
+				http.ServeFile(w, r, indexPath)
 				return
 			}
-		}
 
-		// If splash.html is not found, serve index.html
-		http.ServeFile(w, r, filepath.Join("webview", "dist", "index.html"))
-	})
-
-	// Serve static files from dist directory
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("webview/dist")))
+			// If neither file is found, return 404
+			log.Printf("No index file found, returning 404")
+			http.Error(w, "Not Found", http.StatusNotFound)
+		})
+	}
 
 	http.Handle("/", r)
 
-	log.Printf("Server starting on :%s...", config.Port)
+	log.Printf("Server starting on 0.0.0.0:%s...", config.Port)
 
 	// Create server with timeouts
 	srv := &http.Server{
-		Addr:         ":" + config.Port,
+		Addr:         "0.0.0.0:" + config.Port,
 		Handler:      r,
 		ReadTimeout:  config.ReadTimeout,
 		WriteTimeout: config.WriteTimeout,

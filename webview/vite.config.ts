@@ -69,15 +69,21 @@ export default defineConfig(({ command, mode }) => {
           ]
         },
         fs: {
-          strict: true,
-          allow: ['src']
+          strict: false, // Allow serving files from outside the root
+          allow: ['..'] // Allow serving files from parent directory
         },
-        host: true,
-        open: true,
+        cors: true, // Enable CORS
+        host: '0.0.0.0', // Listen on all interfaces
+        hmr: {
+          host: 'localhost',
+          port: 3000,
+          protocol: 'ws'
+        },
         proxy: {
           '/api': {
             target: env.VITE_API_URL || 'http://localhost:8080',
             changeOrigin: true,
+            secure: false
           },
         },
       },
