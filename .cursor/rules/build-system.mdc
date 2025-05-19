@@ -17,33 +17,46 @@ The project uses Task as its build system, defined in [Taskfile.yml](mdc:Taskfil
 ### Building
 - `task build` - Builds both frontend and backend
 - `task build:frontend` - Builds frontend assets
-- `task build:windows` - Builds Windows-specific binary
+- `task build:windows` - Builds Windows-specific binary with embedded version info
 
 ### Linting
 - `task lint` - Runs all linters
-- `task lint:frontend` - Lints frontend code
-- `task lint:backend` - Lints backend code
+- `task lint:frontend` - Lints frontend code (ESLint)
+- `task lint:backend` - Lints backend code (golangci-lint)
 - `task lint:fix` - Fixes linting issues
 
+### Testing
+- `task test` - Runs all tests
+- `task test:backend` - Runs Go tests with race detection
+- `task test:frontend` - Runs frontend tests
+
 ### Installation
-- `task install` - Installs all dependencies
-- `task install:frontend` - Installs frontend dependencies
-- `task install:go` - Installs Go dependencies
+- `task deps` - Installs all dependencies
+- `task deps:frontend` - Installs frontend dependencies (npm)
+- `task deps:backend` - Installs Go dependencies
 
 ## Build Configuration
 
 ### Windows Build
 - Uses `-H windowsgui` flag for GUI application
-- Embeds version information via ldflags
-- Outputs to `bin/server.exe`
+- Embeds version information via ldflags:
+  - Git version/tag
+  - Build timestamp
+  - Git commit hash
+  - Go version
+- Outputs to `bin/ojivid.exe`
 
 ### Frontend Build
 - Uses Vite for building
-- Outputs to `static/dist/`
-- Includes TypeScript compilation
+- TypeScript compilation
+- Outputs to `webview/dist/`
+- Includes source maps for debugging
 
 ## Dependencies
 - Go modules for backend
 - npm for frontend
 - Task for build orchestration
+- Vite for frontend build tooling
+- ESLint for frontend linting
+- golangci-lint for backend linting
 

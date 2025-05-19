@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 # Project Structure
 
-This is a Go-based web application with a React frontend, using webview for the desktop interface.
+This is a Go-based desktop application with a TypeScript frontend, using webview for the native window interface.
 
 ## Key Components
 
@@ -13,24 +13,39 @@ This is a Go-based web application with a React frontend, using webview for the 
 - [main.go](mdc:main.go) - Main application entry point
 - [webview/app.go](mdc:webview/app.go) - Webview application implementation
 - [config/config.go](mdc:config/config.go) - Configuration management
+- [handlers/](mdc:handlers) - HTTP request handlers
 
 ### Frontend
-- Frontend assets are built into `static/dist/`
+- [webview/src/](mdc:webview/src) - Frontend source code
+  - [main.ts](mdc:webview/src/main.ts) - Frontend entry point
+  - [templates/](mdc:webview/src/templates) - UI templates
+  - [camera/](mdc:webview/src/camera) - Camera management
+- Built assets in `webview/dist/`
 - Uses Vite for build tooling
-- React-based UI components
+- TypeScript-based UI components
 
 ### Build System
 - [Taskfile.yml](mdc:Taskfile.yml) - Main build configuration
 - Uses Go modules for dependency management
 - npm for frontend dependencies
+- ESLint for frontend linting
+- golangci-lint for backend linting
 
 ## Build Process
-1. Frontend assets are built using Vite
+1. Frontend assets are built using Vite into `webview/dist/`
 2. Go application is compiled with webview support
-3. Final binary is placed in `bin/server.exe` (Windows)
+3. Final binary is placed in `bin/ojivid.exe` (Windows)
 
 ## Development
 - Use `task dev` to run in development mode
-- Frontend development server runs on configured port
+- Frontend development server runs on port 3000
 - Backend runs with hot-reload support
+- Debug mode available via `?debug=true` URL parameter
+
+## Project Organization
+- Clear separation between frontend and backend code
+- Modular component structure
+- TypeScript for type safety
+- Go modules for dependency management
+- Task-based build system for automation
 
