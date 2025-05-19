@@ -18,13 +18,13 @@ tasks:
         set BUILD_TIME=%BUILD_TIME: =0%
         set GO_VERSION=%go version%
         set GO_VERSION=%GO_VERSION:~13%
-        go build -ldflags "-H windowsgui -s -w -X main.version=`git describe --tags --always --dirty` -X main.buildTime=%BUILD_TIME% -X main.gitCommit=`git rev-parse HEAD` -X main.goVersion=%GO_VERSION%" -o bin\ojivid.exe main.go
+        go build -ldflags "-H windowsgui -s -w -X main.version=`git describe --tags --always --dirty` -X main.buildTime=%BUILD_TIME% -X main.gitCommit=`git rev-parse HEAD` -X main.goVersion=%GO_VERSION%" -o bin\\ojivid.exe main.go
       silent: true
 
   run:
     desc: Run the application on Windows
     cmds:
-    - bin\ojivid.exe
+    - cmd: bin\\ojivid.exe
 
   clean:
     desc: Clean build artifacts on Windows
