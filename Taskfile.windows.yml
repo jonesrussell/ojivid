@@ -1,12 +1,12 @@
 version: '3'
 
 tasks:
-  build:
+  build:windows:
     desc: Build the application for Windows
     cmds:
-    - go build -ldflags "-H windowsgui" -o bin\server.exe main.go
+    - go build -ldflags "-H windowsgui {{.LDFLAGS}}" -o bin\ojivid.exe main.go
 
   run:
     desc: Run the application on Windows
     cmds:
-    - bin\server.exe
+    - bin\ojivid.exe

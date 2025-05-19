@@ -1,12 +1,12 @@
 version: '3'
 
 tasks:
-  build:
+  build:linux:
     desc: Build the application for Linux
     cmds:
-    - go build -ldflags "-s -w" -o bin/server main.go
+    - go build -ldflags "{{.LDFLAGS}}" -o bin/ojivid main.go
 
   run:
     desc: Run the application on Linux
     cmds:
-    - ./bin/server
+    - ./bin/ojivid

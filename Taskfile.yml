@@ -18,8 +18,7 @@ output: prefixed
 silent: false
 
 includes:
-  windows: Taskfile.windows.yml
-  linux: Taskfile.linux.yml
+  build: ./Taskfile.{{OS}}.yml
 
 tasks:
   default:
@@ -32,9 +31,9 @@ tasks:
 
   deps:
     desc: Install all dependencies
-    deps: [ deps:go, deps:frontend ]
+    deps: [ deps:backend, deps:frontend ]
 
-  deps:go:
+  deps:backend:
     desc: Install Go dependencies
     cmds:
     - go mod download
@@ -48,9 +47,17 @@ tasks:
 
   build:
     desc: Build the application
+    deps: [ build:frontend, build:backend ]
+
+  build:frontend:
+    desc: Build frontend assets
     cmds:
     - cd webview && npm run build
-    - go build -o bin/ojivid.exe
+
+  build:backend:
+    desc: Build backend binary
+    cmds:
+    - task: build:{{.OS}}
 
   run:
     desc: Run application
