@@ -54,4 +54,72 @@ document.addEventListener('DOMContentLoaded', initApp);
 // Add HMR support
 if (import.meta.hot) {
     import.meta.hot.accept();
+}
+
+// Debug mode handling
+const isDebug = window.location.search.includes('debug=true');
+
+if (isDebug) {
+    // Enable debug logging
+    console.log('Debug mode enabled');
+    
+    // Add debug UI
+    const debugPanel = document.createElement('div');
+    debugPanel.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 9999;
+        max-width: 300px;
+        max-height: 200px;
+        overflow: auto;
+    `;
+    document.body.appendChild(debugPanel);
+
+    // Override console methods to show in debug panel
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info
+    };
+
+    function appendToDebugPanel(type: string, ...args: any[]) {
+        const line = document.createElement('div');
+        line.style.color = type === 'error' ? '#ff6b6b' : 
+                          type === 'warn' ? '#ffd93d' : 
+                          type === 'info' ? '#4dabf7' : '#fff';
+        line.textContent = `[${type}] ${args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ')}`;
+        debugPanel.appendChild(line);
+        debugPanel.scrollTop = debugPanel.scrollHeight;
+    }
+
+    console.log = (...args) => {
+        originalConsole.log(...args);
+        appendToDebugPanel('log', ...args);
+    };
+    console.error = (...args) => {
+        originalConsole.error(...args);
+        appendToDebugPanel('error', ...args);
+    };
+    console.warn = (...args) => {
+        originalConsole.warn(...args);
+        appendToDebugPanel('warn', ...args);
+    };
+    console.info = (...args) => {
+        originalConsole.info(...args);
+        appendToDebugPanel('info', ...args);
+    };
+
+    // Add debug info
+    console.log('Webview initialized');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
 } 

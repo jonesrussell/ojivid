@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -73,7 +74,24 @@ func main() {
 	// Start the HTTP server
 	startServer()
 
-	// Start the webview application
-	app := webview.New()
-	app.Start()
+	// Create webview
+	w := webview.New(true)
+	defer w.Destroy()
+
+	// Set webview title
+	w.SetTitle("Ojiosk")
+
+	// Set webview size
+	w.SetSize(800, 600, webview.HintNone)
+
+	// Enable debug mode if APP_DEBUG is true
+		w.SetDebug(true)
+		// Add debug parameter to the URL
+		w.Navigate(fmt.Sprintf("http://localhost:%s/splash.html?debug=true", config.Port))
+	} else {
+		w.Navigate(fmt.Sprintf("http://localhost:%s/splash.html", config.Port))
+	}
+
+	// Start the webview
+	w.Run()
 }
