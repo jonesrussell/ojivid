@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  // Load env file based on `mode` in the current working directory
+  // Load environment variables based on mode
   const env = loadEnv(mode, process.cwd(), '');
 
   const commonConfig: UserConfig = {
@@ -19,7 +19,7 @@ export default defineConfig(({ command, mode }) => {
 
     optimizeDeps: {
       exclude: ['@eslint', 'eslint'],
-      force: true
+      force: true,
     },
 
     build: {
@@ -30,28 +30,28 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         input: {
           splash: resolve(__dirname, 'src/splash.html'),
-          main: resolve(__dirname, 'src/main.ts')
+          main: resolve(__dirname, 'src/main.ts'),
         },
         output: {
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]'
-        }
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+        },
       },
       copyPublicDir: true, // Ensure public directory is copied
     },
 
-    // Move static assets to public directory
+    // Static assets should reside in 'public' directory
     publicDir: 'public',
   };
 
-  // Development specific config
+  // Development-specific configuration
   if (command === 'serve') {
     return {
       ...commonConfig,
       server: {
         port: 3000,
-        strictPort: false, // Allow port adjustment if 3000 is in use
+        strictPort: false, // Allow port reassignment if 3000 is unavailable
         watch: {
           usePolling: true,
           interval: 1000,
@@ -66,26 +66,26 @@ export default defineConfig(({ command, mode }) => {
             '**/*.log',
             'dist/**',
             'dist/assets/**',
-            'dist/src/**'
-          ]
+            'dist/src/**',
+          ],
         },
         fs: {
           strict: false, // Allow serving files from outside the root
-          allow: ['public'] // Only allow access to public directory
+          allow: ['public'], // Restrict access to the public directory
         },
         cors: true, // Enable CORS
         host: '0.0.0.0', // Listen on all interfaces
         hmr: {
           host: 'localhost',
           port: 3000,
-          protocol: 'ws'
+          protocol: 'ws',
         },
         proxy: {
           '/api': {
             target: env.VITE_API_URL || 'http://localhost:8080',
             changeOrigin: true,
             secure: false,
-            ws: true // Enable WebSocket support for API
+            ws: true, // Enable WebSocket proxy support
           },
         },
       },
@@ -96,7 +96,7 @@ export default defineConfig(({ command, mode }) => {
     };
   }
 
-  // Production specific config
+  // Production-specific configuration
   return {
     ...commonConfig,
     build: {
