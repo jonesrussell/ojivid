@@ -21,6 +21,7 @@ silent: false
 
 includes:
   windows: Taskfile.windows.yml
+  linux: Taskfile.linux.yml
 
 tasks:
   default:
@@ -60,14 +61,14 @@ tasks:
       - npm run build
 
   build:backend:
-    desc: Build backend
+    desc: Build backend application
     cmds:
-      - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server.exe {{.MAIN_PACKAGE}}
+      - go build -ldflags "{{.LDFLAGS}}" -o {{.BIN_DIR}}/server {{.MAIN_PACKAGE}}
 
   run:
     desc: Run application
     cmds:
-      - "{{.BIN_DIR}}/server.exe"
+      - task run:platform
 
   dev:
     desc: Run with hot reloading
@@ -115,3 +116,4 @@ tasks:
       - rm -rf {{.DIST_DIR}} coverage.out coverage.html
       - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist
       - go clean -cache -testcache
+      
