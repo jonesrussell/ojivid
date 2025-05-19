@@ -59,13 +59,15 @@ func startServer() {
 			// Set appropriate MIME types based on file extension
 			switch filepath.Ext(r.URL.Path) {
 			case ".css":
-				w.Header().Set("Content-Type", "text/css")
+				w.Header().Set("Content-Type", "text/css; charset=utf-8")
 			case ".js":
-				w.Header().Set("Content-Type", "application/javascript")
+				w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 			case ".html":
-				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			case ".svg":
+				w.Header().Set("Content-Type", "image/svg+xml")
 			}
-			http.StripPrefix("/assets/", fs).ServeHTTP(w, r)
+			fs.ServeHTTP(w, r)
 		}))
 
 		// Serve splash.html for root route
@@ -73,6 +75,7 @@ func startServer() {
 			// Try multiple possible locations for splash.html
 			possiblePaths := []string{
 				filepath.Join(distDir, "src", "splash.html"), // Production build
+				filepath.Join(distDir, "splash.html"),        // Alternative location
 			}
 
 			// Log the current working directory and paths being checked
