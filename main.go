@@ -24,8 +24,8 @@ func startServer() {
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Try multiple possible locations for splash.html
 		possiblePaths := []string{
-			filepath.Join("webview", "dist", "src", "splash.html"), // Vite build output
-			filepath.Join("webview", "dist", "splash.html"),        // Alternative location
+			filepath.Join("webview", "dist", "splash.html"),        // Production build
+			filepath.Join("webview", "dist", "src", "splash.html"), // Development build
 			filepath.Join("webview", "src", "splash.html"),         // Source location
 		}
 
@@ -41,7 +41,7 @@ func startServer() {
 		http.ServeFile(w, r, filepath.Join("webview", "dist", "index.html"))
 	})
 
-	// Serve other static files from dist directory
+	// Serve static files from dist directory
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("webview/dist")))
 
 	http.Handle("/", r)

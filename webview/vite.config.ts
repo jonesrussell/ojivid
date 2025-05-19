@@ -28,7 +28,15 @@ export default defineConfig(({ command, mode }) => {
       sourcemap: true,
       assetsDir: 'assets',
       rollupOptions: {
-        input: resolve(__dirname, 'src/splash.html')
+        input: {
+          splash: resolve(__dirname, 'src/splash.html'),
+          main: resolve(__dirname, 'src/main.ts')
+        },
+        output: {
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
       },
       copyPublicDir: true, // Ensure public directory is copied
     },

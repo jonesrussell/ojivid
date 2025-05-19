@@ -82,7 +82,9 @@ tasks:
 
   dev:
     desc: Run the application with hot reloading
-    deps: [ dev:frontend, dev:backend ]
+    cmds:
+    - task dev:frontend
+    - task dev:backend
 
   dev:frontend:
     desc: Run the frontend with hot reloading
@@ -94,6 +96,7 @@ tasks:
     desc: Run backend in development mode
     cmds:
     - go run {{.MAIN_PACKAGE}}
+    wait: true
 
   test:
     desc: Run all tests
