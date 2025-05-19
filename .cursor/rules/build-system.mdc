@@ -19,6 +19,11 @@ The project uses Task as its build system, defined in [Taskfile.yml](mdc:Taskfil
 - `task build:frontend` - Builds frontend assets
 - `task build:windows` - Builds Windows-specific binary with embedded version info
 
+### Cleaning
+- `task clean` - Removes build artifacts
+- `task clean:frontend` - Removes frontend build artifacts
+- `task clean:backend` - Removes backend build artifacts
+
 ### Linting
 - `task lint` - Runs all linters
 - `task lint:frontend` - Lints frontend code (ESLint)
@@ -46,11 +51,35 @@ The project uses Task as its build system, defined in [Taskfile.yml](mdc:Taskfil
   - Go version
 - Outputs to `bin/ojivid.exe`
 
+#### Windows Build Requirements
+- MSYS2 or Git Bash required for Unix commands
+- Required commands in PATH:
+  - `date`
+  - `cut`
+  - `git`
+  - `rmdir`
+  - `rm`
+- If commands not found, add MSYS2 bin directory to PATH:
+  ```bash
+  export PATH="/c/msys64/usr/bin:$PATH"
+  ```
+- Alternative: Use PowerShell commands in Taskfile:
+  ```yaml
+  clean:
+    cmds:
+      - powershell -Command "Remove-Item -Recurse -Force webview/dist"
+  ```
+
 ### Frontend Build
 - Uses Vite for building
 - TypeScript compilation
 - Outputs to `webview/dist/`
 - Includes source maps for debugging
+- Build output structure:
+  - `dist/src/splash.html`
+  - `dist/assets/*.css`
+  - `dist/assets/*.js`
+  - `dist/assets/*.map`
 
 ## Dependencies
 - Go modules for backend
@@ -59,4 +88,10 @@ The project uses Task as its build system, defined in [Taskfile.yml](mdc:Taskfil
 - Vite for frontend build tooling
 - ESLint for frontend linting
 - golangci-lint for backend linting
+
+## Known Issues
+- Windows build requires Unix commands (`date`, `cut`, `rmdir`, `rm`)
+- Solution: Use MSYS2 or Git Bash and ensure PATH includes Unix commands
+- Alternative: Modify Taskfile to use PowerShell commands for Windows
+- PowerShell command chaining requires semicolon (`;`) instead of `&&`
 
