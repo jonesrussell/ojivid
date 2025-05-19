@@ -3,6 +3,7 @@ package webview
 import (
 	"fmt"
 	"kiosk-video-recorder/config"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +29,52 @@ func New() *App {
 	}
 }
 
+// findDistFile searches for the dist file in various possible locations
+func findDistFile() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// Try multiple possible locations for the dist directory
+	possiblePaths := []string{
+		filepath.Join(cwd, "webview", "dist", "splash.html"), // Relative to current directory
+		filepath.Join(cwd, "dist", "splash.html"),            // In dist directory
+		filepath.Join(cwd, "static", "dist", "splash.html"),  // In static/dist
+	}
+
+	// If we're running from a built executable, also check its directory
+	execPath, execErr := os.Executable()
+	if execErr == nil {
+		execDir := filepath.Dir(execPath)
+		possiblePaths = append(possiblePaths, filepath.Join(execDir, "webview", "dist", "splash.html"))
+	}
+
+	// Try each possible path
+	for _, path := range possiblePaths {
+		if _, statErr := os.Stat(path); statErr == nil {
+			return path, nil
+		}
+	}
+
+	return "", nil
+}
+
+// loadLocalFile attempts to load the application from a local file
+func (a *App) loadLocalFile(foundPath string) error {
+	// Convert to absolute file URL
+	absPath, err := filepath.Abs(foundPath)
+	if err != nil {
+		return fmt.Errorf("error getting absolute path: %w", err)
+	}
+
+	// Convert Windows path to URL format
+	fileURL := fmt.Sprintf("file:///%s", strings.ReplaceAll(filepath.ToSlash(absPath), "\\", "/"))
+	log.Printf("Loading from: %s", fileURL)
+	a.view.Navigate(fileURL)
+	return nil
+}
+
 // Start initializes and runs the webview application
 func (a *App) Start() {
 	defer a.view.Destroy()
@@ -36,60 +83,30 @@ func (a *App) Start() {
 	a.view.SetTitle("Ojiosk")
 	a.view.SetSize(DefaultWindowWidth, DefaultWindowHeight, 0)
 
-	// Check if we're in development mode
+	// Handle development mode
 	if os.Getenv("DEV") == "1" {
-		// In development, use the Vite dev server
 		a.view.Navigate("http://localhost:3000")
+		a.view.Run()
+		return
+	}
+
+	// Production mode - try to load from local files first
+	foundPath, findErr := findDistFile()
+	if findErr != nil {
+		log.Printf("Error finding dist file: %v", findErr)
+		a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
+		a.view.Run()
+		return
+	}
+
+	if foundPath != "" {
+		if loadErr := a.loadLocalFile(foundPath); loadErr != nil {
+			log.Printf("%v", loadErr)
+			a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
+		}
 	} else {
-		// Get current working directory
-		cwd, err := os.Getwd()
-		if err != nil {
-			fmt.Printf("Error getting working directory: %v\n", err)
-			a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
-			a.view.Run()
-			return
-		}
-
-		// Try multiple possible locations for the dist directory
-		possiblePaths := []string{
-			filepath.Join(cwd, "webview", "dist", "splash.html"), // Relative to current directory
-			filepath.Join(cwd, "dist", "splash.html"),            // In dist directory
-			filepath.Join(cwd, "static", "dist", "splash.html"),  // In static/dist
-		}
-
-		// If we're running from a built executable, also check its directory
-		if execPath, err := os.Executable(); err == nil {
-			execDir := filepath.Dir(execPath)
-			possiblePaths = append(possiblePaths, filepath.Join(execDir, "webview", "dist", "splash.html"))
-		}
-
-		// Try each possible path
-		var foundPath string
-		for _, path := range possiblePaths {
-			if _, err := os.Stat(path); err == nil {
-				foundPath = path
-				break
-			}
-		}
-
-		if foundPath != "" {
-			// Convert to absolute file URL
-			absPath, err := filepath.Abs(foundPath)
-			if err != nil {
-				fmt.Printf("Error getting absolute path: %v\n", err)
-				a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
-				a.view.Run()
-				return
-			}
-
-			// Convert Windows path to URL format
-			fileURL := fmt.Sprintf("file:///%s", strings.ReplaceAll(filepath.ToSlash(absPath), "\\", "/"))
-			fmt.Printf("Loading from: %s\n", fileURL)
-			a.view.Navigate(fileURL)
-		} else {
-			fmt.Printf("Dist file not found in any of the expected locations, falling back to server\n")
-			a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
-		}
+		log.Printf("Dist file not found in any of the expected locations, falling back to server")
+		a.view.Navigate(fmt.Sprintf("http://localhost:%s", config.Port))
 	}
 
 	// Run the webview
