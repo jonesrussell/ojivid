@@ -18,7 +18,7 @@ export default defineConfig(({ command, mode }) => {
     },
 
     optimizeDeps: {
-      exclude: ['@eslint/**', 'eslint/**'],
+      exclude: ['@eslint', 'eslint'],
       force: true
     },
 
@@ -54,7 +54,10 @@ export default defineConfig(({ command, mode }) => {
             '**/.vscode/**',
             '**/.idea/**',
             '**/bin/**',
-            '**/*.log'
+            '**/*.log',
+            'dist/**',
+            'dist/assets/**',
+            'dist/src/**'
           ]
         },
         fs: {

@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>Ojiosk - Loading</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="/src/styles.css">
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>">
 </head>
 <body>
     <div id="app"></div>
     <script type="module">
-        import { createView } from './templates';
+        import { createView } from '/src/templates';
         
         // Create the splash view
         const splashContent = createView('splash');
@@ -29,7 +30,7 @@
         // Re-run the main script to initialize the app
         const script = document.createElement('script');
         script.type = 'module';
-        script.src = './main.ts';
+        script.src = '/src/main.ts';
         document.body.appendChild(script);
     </script>
 </body>

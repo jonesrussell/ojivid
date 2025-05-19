@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -25,9 +24,9 @@ func startServer() {
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Try multiple possible locations for splash.html
 		possiblePaths := []string{
-			filepath.Join("webview", "dist", "src", "splash.html"),  // Vite build output
-			filepath.Join("webview", "dist", "splash.html"),         // Alternative location
-			filepath.Join("webview", "src", "splash.html"),          // Source location
+			filepath.Join("webview", "dist", "src", "splash.html"), // Vite build output
+			filepath.Join("webview", "dist", "splash.html"),        // Alternative location
+			filepath.Join("webview", "src", "splash.html"),         // Source location
 		}
 
 		// Try each possible path
@@ -74,24 +73,7 @@ func main() {
 	// Start the HTTP server
 	startServer()
 
-	// Create webview
-	w := webview.New(true)
-	defer w.Destroy()
-
-	// Set webview title
-	w.SetTitle("Ojiosk")
-
-	// Set webview size
-	w.SetSize(800, 600, webview.HintNone)
-
-	// Enable debug mode if APP_DEBUG is true
-		w.SetDebug(true)
-		// Add debug parameter to the URL
-		w.Navigate(fmt.Sprintf("http://localhost:%s/splash.html?debug=true", config.Port))
-	} else {
-		w.Navigate(fmt.Sprintf("http://localhost:%s/splash.html", config.Port))
-	}
-
-	// Start the webview
-	w.Run()
+	// Create and start webview
+	app := webview.New()
+	app.Start()
 }

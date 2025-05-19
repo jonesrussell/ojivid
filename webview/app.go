@@ -34,7 +34,7 @@ func (a *App) Start() {
 
 	// Set window properties
 	a.view.SetTitle("Ojiosk")
-	a.view.SetSize(DefaultWindowWidth, DefaultWindowHeight, webview.HintNone)
+	a.view.SetSize(DefaultWindowWidth, DefaultWindowHeight, 0)
 
 	// Check if we're in development mode
 	if os.Getenv("DEV") == "1" {
@@ -52,9 +52,9 @@ func (a *App) Start() {
 
 		// Try multiple possible locations for the dist directory
 		possiblePaths := []string{
-			filepath.Join(cwd, "webview", "dist", "splash.html"),     // Relative to current directory
-			filepath.Join(cwd, "dist", "splash.html"),                // In dist directory
-			filepath.Join(cwd, "static", "dist", "splash.html"),      // In static/dist
+			filepath.Join(cwd, "webview", "dist", "splash.html"), // Relative to current directory
+			filepath.Join(cwd, "dist", "splash.html"),            // In dist directory
+			filepath.Join(cwd, "static", "dist", "splash.html"),  // In static/dist
 		}
 
 		// If we're running from a built executable, also check its directory

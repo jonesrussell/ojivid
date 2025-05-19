@@ -82,14 +82,13 @@ tasks:
 
   dev:
     desc: Run the application with hot reloading
-    cmds:
-    - air
+    deps: [ dev:frontend, dev:backend ]
 
   dev:frontend:
     desc: Run the frontend with hot reloading
     dir: "{{.FRONTEND_DIR}}"
     cmds:
-    - cd {{.FRONTEND_DIR}} && npm run dev
+    - npm run dev
 
   dev:backend:
     desc: Run backend in development mode
