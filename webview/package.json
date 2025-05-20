@@ -9,7 +9,12 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
-  "keywords": [],
+  "keywords": [
+    "language",
+    "culture",
+    "indigenous",
+    "first nation"
+  ],
   "author": "Russell Jones <russell@web.net>",
   "license": "MIT",
   "description": "",
