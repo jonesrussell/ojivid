@@ -95,10 +95,10 @@ tasks:
   # --------------------------------------------
   dev:
     desc: Run development server
-    cmds:
-    - go run main.go
+    deps: [ dev:frontend, dev:backend ]
     env:
-      DEV: "1"
+      APP_ENV: "development"
+      APP_DEBUG: "true"
       VITE_API_URL: "http://localhost:8080"
 
   dev:frontend:
@@ -109,6 +109,9 @@ tasks:
 
   dev:backend:
     desc: Run backend in development mode
+    env:
+      APP_ENV: "development"
+      APP_DEBUG: "true"
     cmds:
     - go run {{.MAIN_PACKAGE}}
 

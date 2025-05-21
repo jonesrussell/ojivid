@@ -1,37 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>Ojiosk - Loading</title>
-    <link rel="stylesheet" href="/src/styles.css">
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>">
-</head>
-<body>
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>"
+    />
+  </head>
+  <body>
     <div id="app"></div>
     <script type="module">
-        import { createView } from '/src/templates';
-        
-        // Create the splash view
-        const splashContent = createView('splash');
-        document.getElementById('app').appendChild(splashContent);
-        
-        // Create and append the layout
-        const layoutView = createView('layout', { 
-            content: splashContent.outerHTML,
-            title: 'Ojiosk - Loading'
-        });
-        
-        // Replace the entire body content with the layout
-        document.body.innerHTML = layoutView.outerHTML;
-        
-        // Re-run the main script to initialize the app
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = '/src/main.ts';
-        document.body.appendChild(script);
+      import { createView } from "./templates";
+
+      // Create the splash view
+      const splashContent = createView("splash");
+      document.getElementById("app").appendChild(splashContent);
+
+      // Create and append the layout
+      const layoutView = createView("layout", {
+        content: splashContent.outerHTML,
+        title: "Ojiosk - Loading",
+      });
+
+      // Replace the entire body content with the layout
+      document.body.innerHTML = layoutView.outerHTML;
+
+      // Re-run the main script to initialize the app
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "./main.ts";
+      document.body.appendChild(script);
     </script>
-</body>
-</html> 
+  </body>
+</html>

@@ -1,6 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
-import type { UserConfig } from 'vite';
+import type { UserConfig, ViteDevServer } from 'vite';
 import { resolve } from 'path';
+import type { IncomingMessage, ServerResponse } from 'http';
+import type { NextHandleFunction } from 'connect';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -36,9 +38,11 @@ export default defineConfig(({ command, mode }) => {
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash].[ext]',
+          preserveModules: false,
+          preserveModulesRoot: 'src',
         },
       },
-      copyPublicDir: true, // Ensure public directory is copied
+      copyPublicDir: true,
     },
 
     // Static assets should reside in 'public' directory
@@ -51,7 +55,7 @@ export default defineConfig(({ command, mode }) => {
       ...commonConfig,
       server: {
         port: 3000,
-        strictPort: false, // Allow port reassignment if 3000 is unavailable
+        strictPort: false,
         watch: {
           usePolling: true,
           interval: 1000,
@@ -70,11 +74,11 @@ export default defineConfig(({ command, mode }) => {
           ],
         },
         fs: {
-          strict: false, // Allow serving files from outside the root
-          allow: ['public'], // Restrict access to the public directory
+          strict: false,
+          allow: ['..'], // Allow serving files from parent directory
         },
-        cors: true, // Enable CORS
-        host: '0.0.0.0', // Listen on all interfaces
+        cors: true,
+        host: '0.0.0.0',
         hmr: {
           host: 'localhost',
           port: 3000,
@@ -85,8 +89,16 @@ export default defineConfig(({ command, mode }) => {
             target: env.VITE_API_URL || 'http://localhost:8080',
             changeOrigin: true,
             secure: false,
-            ws: true, // Enable WebSocket proxy support
+            ws: true,
           },
+        },
+        // Add middleware to log requests
+        middlewareMode: false,
+        configureServer: (server: ViteDevServer) => {
+          server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: NextHandleFunction) => {
+            console.log(`[Vite] ${req.method} ${req.url}`);
+            next();
+          });
         },
       },
       define: {
